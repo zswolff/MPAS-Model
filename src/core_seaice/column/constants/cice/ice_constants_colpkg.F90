@@ -5,6 +5,7 @@
 ! used in the column package
 !
 ! author Elizabeth C. Hunke, LANL
+! modified by Zachary S Wolff (ZSW), UCI
 
       module ice_constants_colpkg
 
@@ -26,7 +27,6 @@
          cp_air    = 1005.0_dbl_kind  ,&! specific heat of air (J/kg/K)
          ! (Briegleb JGR 97 11475-11485  July 1992)
          emissivity= 0.95_dbl_kind    ,&! emissivity of snow and ice
-!echmod         emissivity= 0.985_dbl_kind    ,&! emissivity of snow and ice
          cp_ice    = 2106._dbl_kind   ,&! specific heat of fresh ice (J/kg/K)
          cp_ocn    = 4218._dbl_kind   ,&! specific heat of ocn    (J/kg/K)
                                         ! freshwater value needed for enthalpy
@@ -119,6 +119,76 @@
          rhosmin   = 100.0_dbl_kind    ! minimum snow density (kg/m^3)
 
       !-----------------------------------------------------------------
+      ! physical constants added by ZSW 3/26/19
+      !-----------------------------------------------------------------
+      real (kind=dbl_kind), parameter, public :: & 
+        emissivity_ice1 = 0.925_dbl_kind ,&
+        emissivity_ice2 = 0.946_dbl_kind  ,&
+        emissivity_ice3 = 0.931_dbl_kind ,&
+        emissivity_ice4 = 0.920_dbl_kind ,&
+        emissivity_ice5 = 0.911_dbl_kind  ,&
+        emissivity_ice6 = 0.952_dbl_kind ,&
+        emissivity_ice7 = 0.977_dbl_kind ,&
+        emissivity_ice8 = 0.969_dbl_kind ,&
+        emissivity_ice9 = 0.964_dbl_kind  ,&
+        emissivity_ice10 =0.962_dbl_kind ,&
+        emissivity_ice11 =0.964_dbl_kind ,&
+        emissivity_ice12 =0.963_dbl_kind ,&
+        emissivity_ice13 =0.959_dbl_kind ,&
+        emissivity_ice14 =0.960_dbl_kind ,&
+        emissivity_ice15 = 0.957_dbl_kind ,&
+        emissivity_ice16 = 0.943_dbl_kind ,&
+        emissivity_snow1 = 0.992_dbl_kind ,&
+        emissivity_snow2 = 0.988_dbl_kind  ,&
+        emissivity_snow3 = 0.980_dbl_kind  ,&
+        emissivity_snow4 =  0.972_dbl_kind ,&
+        emissivity_snow5 = 0.964_dbl_kind  ,&
+        emissivity_snow6 = 0.981_dbl_kind  ,&
+        emissivity_snow7 =  0.991_dbl_kind ,&
+        emissivity_snow8 = 0.986_dbl_kind  ,&
+        emissivity_snow9 = 0.981_dbl_kind  ,&
+        emissivity_snow10 =0.978_dbl_kind  ,&
+        emissivity_snow11 = 0.977_dbl_kind ,&
+        emissivity_snow12 =0.973_dbl_kind  ,&
+        emissivity_snow13 = 0.965_dbl_kind ,&
+        emissivity_snow14 = 0.964_dbl_kind ,&
+        emissivity_snow15 = 0.959_dbl_kind ,&
+        emissivity_snow16 = 0.939_dbl_kind ,&
+        emissivity_water1 =  0.892_dbl_kind ,&
+        emissivity_water2 = 0.908_dbl_kind  ,&
+        emissivity_water3 = 0.910_dbl_kind  ,&
+        emissivity_water4 =  0.922_dbl_kind ,&
+        emissivity_water5 =  0.944_dbl_kind ,&
+        emissivity_water6 = 0.978_dbl_kind  ,&
+        emissivity_water7 = 0.975_dbl_kind  ,&
+        emissivity_water8 = 0.971_dbl_kind  ,&
+        emissivity_water9 = 0.966_dbl_kind  ,&
+        emissivity_water10 = 0.963_dbl_kind ,&
+        emissivity_water11 = 0.962_dbl_kind ,&
+        emissivity_water12 = 0.964_dbl_kind ,&
+        emissivity_water13 = 0.961_dbl_kind ,&
+        emissivity_water14 = 0.961_dbl_kind ,&
+        emissivity_water15 = 0.959_dbl_kind ,&
+        emissivity_water16 = 0.952_dbl_kind ,&
+        Pond_flux = -294.552325433_dbl_kind,  &
+        wvn1 = 10.0_dbl_kind ,&
+        wvn2 =  350.0_dbl_kind,&
+        wvn3 = 500.0_dbl_kind ,&
+        wvn4 =  630.0_dbl_kind,&
+        wvn5 = 700.0_dbl_kind ,&
+        wvn6 = 820.0_dbl_kind ,&
+        wvn7 =  980.0_dbl_kind,&
+        wvn8 =  1080.0_dbl_kind,&
+        wvn9 = 1180.0_dbl_kind ,&
+        wvn10 = 1390.0_dbl_kind ,&
+        wvn11 = 1480.0_dbl_kind,&
+        wvn12 = 1800.0_dbl_kind,&
+        wvn13 = 2080.0_dbl_kind,&
+        wvn14 = 2250.0_dbl_kind,&
+        wvn15 = 2380.0_dbl_kind,&
+        wvn16 =2600.0_dbl_kind ,&
+        wvn17 =3250.0_dbl_kind
+      !-----------------------------------------------------------------
       ! numbers used in column package
       !-----------------------------------------------------------------
 
@@ -156,6 +226,8 @@
         bignum = 1.0e+30_dbl_kind, &
         pi     = 3.14159265358979323846_dbl_kind, &
         pih    = p5*pi
+        
+      
 
 !=======================================================================
 

@@ -1800,21 +1800,23 @@
                                     dsnown      , frazil      , &
                                     lmask_n     , lmask_s     , &
                                     mlt_onset   , frz_onset   , &
-                                    yday        , l_stop      , &
-                                    stop_label  , prescribed_ice)
+                                    yday        , apeffn,       &
+                                    l_stop      ,               &
+                                    stop_label  ,               &
+                                   prescribed_ice)
 
       use ice_aerosol, only: update_aerosol
       use ice_atmo, only: neutral_drag_coeffs
       use ice_age, only: increment_age
       use ice_constants_colpkg, only: rhofresh, rhoi, rhos, c0, c1, puny, &
-          snwlvlfac
+          snwlvlfac, stefan_boltzmann
       use ice_firstyear, only: update_FYarea
       use ice_flux_colpkg, only: set_sfcflux, merge_fluxes
       use ice_meltpond_cesm, only: compute_ponds_cesm
       use ice_meltpond_lvl, only: compute_ponds_lvl
       use ice_meltpond_topo, only: compute_ponds_topo
       use ice_snow, only: drain_snow
-      use ice_therm_shared, only: hi_min
+      use ice_therm_shared, only: hi_min, rrtmg_longwave_flux
       use ice_therm_vertical, only: frzmlt_bottom_lateral, thermo_vertical
       use ice_colpkg_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, &
           tr_pond_cesm, tr_pond_lvl, tr_pond_topo, tr_snow, tr_rsnw
@@ -1924,6 +1926,7 @@
          alvl        , & ! level ice area fraction
          vlvl        , & ! level ice volume fraction
          apnd        , & ! melt pond area fraction
+         apeffn      , &
          hpnd        , & ! melt pond depth (m)
          ipnd        , & ! melt pond refrozen lid thickness (m)
          iage        , & ! volume-weighted ice age
@@ -1997,10 +2000,29 @@
          shcoef      , & ! transfer coefficient for sensible heat
          lhcoef      , & ! transfer coefficient for latent heat
          rfrac           ! water fraction retained for melt ponds
-
+      real (kind=dbl_kind) :: &
+         flw1, &
+         flw2, &
+         flw3, &
+         flw4, &
+         flw5, &
+         flw6, &
+         flw7, &
+         flw8, &
+         flw9, &
+         flw10, &
+         flw11, &
+         flw12, &
+         flw13, &
+         flw14, &
+         flw15, &
+         flw16, & 
+         flwnew
+         
       real (kind=dbl_kind) :: &
          raice       , & ! 1/aice
-         pond            ! water retained in ponds (m)
+         pond        , & ! water retained in ponds (m)
+         T_eq            ! Equivalent Temperature for flw   
 
       !---------------------------------------------------------------
       ! Initialize rate of snow loss to leads
@@ -2022,6 +2044,9 @@
          fsnow  =          fsnow*    worka
       endif ! snwredist
 
+      character (len=char_len_long) :: & 
+         warning    
+       T_eq= (flw/stefan_boltzmann)**0.25  
       !-----------------------------------------------------------------
       ! Adjust frzmlt to account for ice-ocean heat fluxes since last
       !  call to coupler.
@@ -2080,7 +2105,8 @@
          shcoef = c0
          worka  = c0
          workb  = c0
-
+         
+         
          if (aicen_init(n) > puny) then
 
             if (calc_Tsfc .or. calc_strair) then 
@@ -2154,7 +2180,26 @@
                                 fsurfn     (n),                 &
                                 fcondtopn  (n))
             endif
-
+            
+            
+            call rrtmg_longwave_flux(T_eq,   flw1, &
+                                     flw2,   flw3, & 
+                                     flw4,   flw5, &  
+                                     flw6,   flw7, &  
+                                     flw8,   flw9, &     
+                                     flw10,  flw11,&  
+                                     flw12,  flw13,&  
+                                     flw14,  flw15,&  
+                                     flw16)
+            flwnew = flw1+flw2+flw3+flw4+flw5+flw6+flw7+flw8+&
+                     flw9+flw10+flw11+flw12+flw13+flw14+flw15+flw16
+                     
+            if (flwnew-flw > 1e-10_dbl_kind .or. flwnew-flw <-1e-10_dbl_kind) then
+                write(warning, *) 'Thermo Error: incoming disagreement calc', flwnew-flw 
+                call add_warning(warning)
+                return 
+            endif
+                                     
             call thermo_vertical(nilyr,        nslyr,        &
                                  dt,           aicen    (n), &
                                  vicen    (n), vsnon    (n), &
@@ -2164,7 +2209,15 @@
                                  tr_snow,      apnd     (n), &
                                  hpnd     (n), iage     (n), &
                                  tr_pond_topo,               &
-                                 flw,          potT,         &
+                                 flw,          flw1,         &
+                                 flw2,         flw3,         &
+                                 flw4,         flw5,         &
+                                 flw6,         flw7,         &
+                                 flw8,         flw9,         &
+                                 flw10,        flw11,        &
+                                 flw12,        flw13,        &
+                                 flw14,        flw15,        &
+                                 flw16,        potT,         &
                                  Qa,           rhoa,         &
                                  fsnow,        fpond,        &
                                  fbot,         Tbot,         &
@@ -2304,7 +2357,16 @@
 
          if (aicen_init(n) > puny) &
             call merge_fluxes (aicen_init(n),            &
-                               flw,        coszen,       & 
+                               nslyr,                    &
+                               flw,        flw1,         &
+                               flw2,       flw,          &
+                               flw4,       flw5,          &
+                               flw6,       flw7,         &
+                               flw8,       flw9,         &
+                               flw10,      flw11,        &
+                               flw12,      flw13,        &
+                               flw14,      flw15,        &      
+                               flw16,      coszen,       & 
                                strairxn,   strairyn,     &
                                Cdn_atm_ratio_n,          &
                                fsurfn(n),  fcondtopn(n), &
@@ -2329,6 +2391,8 @@
                                meltt,      melts,        &
                                meltb,      congel,       &
                                snoice,     meltsliq,     &
+                               apeffn(n),                &
+                               vsnon(n),                 & 
                                Uref,       Urefn)
 
       enddo                  ! ncat
@@ -3672,7 +3736,14 @@
                                          frzmlt,    dt)
 
       use ice_constants_colpkg, only: c0, c1, c1000, &
-          cp_ocn, Tffresh, stefan_boltzmann, Lvap, cprho
+          cp_ocn, Tffresh, stefan_boltzmann, Lvap, cprho, &
+          emissivity_water1, emissivity_water2, emissivity_water3, &
+          emissivity_water4, emissivity_water5, emissivity_water6, &
+          emissivity_water7, emissivity_water8, emissivity_water9, &
+          emissivity_water10, emissivity_water11, emissivity_water12, &
+          emissivity_water13, emissivity_water14, emissivity_water15, &
+          emissivity_water16
+      use ice_therm_shared, only: rrtmg_longwave_flux    
 
       real (kind=dbl_kind), intent(in) :: &
          alvdr_ocn , & ! visible, direct   (fraction)
@@ -3711,6 +3782,22 @@
 
       real (kind=dbl_kind) :: &
          TsfK , & ! surface temperature (K)
+         !flwoutn_ocn1, &
+         !flwoutn_ocn2, &
+         !flwoutn_ocn3, &
+         !flwoutn_ocn4, &
+         !flwoutn_ocn5, &
+         !flwoutn_ocn6, &
+         !flwoutn_ocn7, &
+         !flwoutn_ocn8, &
+         !flwoutn_ocn9, &
+         !flwoutn_ocn10, &
+         !flwoutn_ocn11, &
+         !flwoutn_ocn12, &
+         !flwoutn_ocn13, &
+         !flwoutn_ocn14, &
+         !flwoutn_ocn15, &
+         !flwoutn_ocn16, &
          swabs    ! surface absorbed shortwave heat flux (W/m^2)
 
       ! shortwave radiative flux
@@ -3722,7 +3809,13 @@
 
       ! longwave radiative flux
       flwout_ocn = -stefan_boltzmann * TsfK**4
-
+      !rrtmg_longwave_flux(TsfK, flwout_ocn1,flwout_ocn2, &
+      !                   flwout_ocn3, flwout_ocn4, flwout_ocn5, &
+      !                    flwout_ocn6, flwout_ocn7, flwout_ocn8, &
+      !                    flwout_ocn9, flwout_ocn10,flwout_ocn11, &
+      !                    flwout_ocn12, flwout_ocn13, flwout_ocn14, &
+      !                    flwout_ocn15, flwout_ocn16)
+                          
       ! downward latent and sensible heat fluxes
       fsens_ocn =  shcoef * delt
       flat_ocn  =  lhcoef * delq

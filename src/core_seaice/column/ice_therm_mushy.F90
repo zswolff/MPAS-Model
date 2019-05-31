@@ -35,6 +35,14 @@ contains
   subroutine temperature_changes_salinity(dt,                 &
                                           nilyr,    nslyr,    &
                                           rhoa,     flw,      &
+                                          flw1,     flw2,     & 
+                                          flw3,     flw4,     & 
+                                          flw5,     flw6,     & 
+                                          flw7,     flw8,     & 
+                                          flw9,     flw10,    & 
+                                          flw11,    flw12,    & 
+                                          flw13,    flw14,    & 
+                                          flw15,    flw16,    & 
                                           potT,     Qa,       &
                                           shcoef,   lhcoef,   &
                                           fswsfc,   fswint,   &
@@ -48,6 +56,14 @@ contains
                                           sss,                &
                                           fsensn,   flatn,    &
                                           flwoutn,  fsurfn,   &
+                                          flwoutn1, flwoutn2, &
+                                          flwoutn3, flwoutn4, &
+                                          flwoutn5, flwoutn6, &
+                                          flwoutn7, flwoutn8, &
+                                          flwoutn9, flwoutn10, &
+                                          flwoutn11, flwoutn12, &
+                                          flwoutn13, flwoutn14, &
+                                          flwoutn15, flwoutn16, &
                                           fcondtop, fcondbot, &
                                           fadvheat, snoice,   &
                                           einit_old,          &
@@ -77,6 +93,22 @@ contains
     real (kind=dbl_kind), intent(in) :: &
          rhoa        , & ! air density (kg/m^3)
          flw         , & ! incoming longwave radiation (W/m^2)
+         flw1        , & ! incoming longwave radiation band 1 (W/m^2)
+         flw2        , & ! incoming longwave radiation band 2 (W/m^2)
+         flw3        , & ! incoming longwave radiation band 3 (W/m^2)
+         flw4        , & ! incoming longwave radiation band 4 (W/m^2)
+         flw5        , & ! incoming longwave radiation band 5 (W/m^2)
+         flw6        , & ! incoming longwave radiation band 6 (W/m^2)
+         flw7        , & ! incoming longwave radiation band 7 (W/m^2)
+         flw8        , & ! incoming longwave radiation band 8 (W/m^2)
+         flw9        , & ! incoming longwave radiation band 9 (W/m^2)
+         flw10       , & ! incoming longwave radiation band 10 (W/m^2)
+         flw11       , & ! incoming longwave radiation band 11 (W/m^2)
+         flw12       , & ! incoming longwave radiation band 12 (W/m^2)
+         flw13       , & ! incoming longwave radiation band 13 (W/m^2)
+         flw14       , & ! incoming longwave radiation band 14 (W/m^2)
+         flw15       , & ! incoming longwave radiation band 15 (W/m^2)
+         flw16       , & ! incoming longwave radiation band 16 (W/m^2)
          potT        , & ! air potential temperature  (K)
          Qa          , & ! specific humidity (kg/kg)
          shcoef      , & ! transfer coefficient for sensible heat
@@ -108,7 +140,23 @@ contains
          fcondtop    , & ! downward cond flux at top surface (W m-2)
          fsensn      , & ! surface downward sensible heat (W m-2)
          flatn       , & ! surface downward latent heat (W m-2)
-         flwoutn         ! upward LW at surface (W m-2)
+         flwoutn     , & ! upward LW at surface (W m-2)
+         flwoutn1,     & ! upward LW at surface band 1 (W m-2)
+         flwoutn2,     & ! upward LW at surface band 2 (W m-2)
+         flwoutn3,     & ! upward LW at surface band 3 (W m-2)
+         flwoutn4,     & ! upward LW at surface band 4 (W m-2)
+         flwoutn5,     & ! upward LW at surface band 5 (W m-2)
+         flwoutn6,     & ! upward LW at surface band 6 (W m-2)
+         flwoutn7,     & ! upward LW at surface band 7 (W m-2)
+         flwoutn8,     & ! upward LW at surface band 8 (W m-2)
+         flwoutn9,     & ! upward LW at surface band 9 (W m-2)
+         flwoutn10,    & ! upward LW at surface band 10 (W m-2)
+         flwoutn11,    & ! upward LW at surface band 11 (W m-2)
+         flwoutn12,    & ! upward LW at surface band 12 (W m-2)
+         flwoutn13,    & ! upward LW at surface band 13 (W m-2)
+         flwoutn14,    & ! upward LW at surface band 14 (W m-2)
+         flwoutn15,    & ! upward LW at surface band 15 (W m-2)
+         flwoutn16     ! upward LW at surface band 16 (W m-2)
     
     real (kind=dbl_kind), intent(out):: &
          fcondbot    , & ! downward cond flux at bottom surface (W m-2)
@@ -246,6 +294,14 @@ contains
                                   w,           dt,         &
                                   fswint,      fswsfc,     &
                                   rhoa,        flw,        &
+                                  flw1,        flw2,       & 
+                                  flw3,        flw4,       & 
+                                  flw5,        flw6,       & 
+                                  flw7,        flw8,       & 
+                                  flw9,        flw10,      & 
+                                  flw11,       flw12,      & 
+                                  flw13,       flw14,      & 
+                                  flw15,       flw16,      & 
                                   potT,        Qa,         &
                                   shcoef,      lhcoef,     &
                                   Iswabs,      Sswabs,     &
@@ -255,6 +311,14 @@ contains
                                   fcondtop,    fcondbot,   &
                                   fadvheat,                &
                                   flwoutn,     fsensn,     &
+                                  flwoutn1,    flwoutn2,   & 
+                                  flwoutn3,    flwoutn4,   & 
+                                  flwoutn5,    flwoutn6,   & 
+                                  flwoutn7,    flwoutn8,   & 
+                                  flwoutn9,    flwoutn10,  & 
+                                  flwoutn11,   flwoutn12,  & 
+                                  flwoutn13,   flwoutn14,  & 
+                                  flwoutn15,   flwoutn16,  &
                                   flatn,       fsurfn,     &
                                   lstop,       stop_label)
 
@@ -292,6 +356,14 @@ contains
                                     w,           dt,         &
                                     fswint,      fswsfc,     &
                                     rhoa,        flw,        &
+                                    flw1,        flw2,       & 
+                                    flw3,        flw4,       & 
+                                    flw5,        flw6,       & 
+                                    flw7,        flw7,       & 
+                                    flw9,        flw10,      & 
+                                    flw11,       flw12,      &  
+                                    flw13,       flw14,      & 
+                                    flw15,       flw16,      & 
                                     potT,        Qa,         &
                                     shcoef,      lhcoef,     &
                                     Iswabs,      Sswabs,     &
@@ -301,6 +373,14 @@ contains
                                     fcondtop,    fcondbot,   &
                                     fadvheat,                &
                                     flwoutn,     fsensn,     &
+                                    flwoutn1,    flwoutn2,   & 
+                                    flwoutn3,    flwoutn4,   & 
+                                    flwoutn5,    flwoutn6,   & 
+                                    flwoutn7,    flwoutn8,   & 
+                                    flwoutn9,    flwoutn10,  & 
+                                    flwoutn11,   flwoutn12,  & 
+                                    flwoutn13,   flwoutn14,  & 
+                                    flwoutn15,   flwoutn16,  &
                                     flatn,       fsurfn,     &
                                     lstop,       stop_label)
 
@@ -355,6 +435,14 @@ contains
                                    w,           dt,         &
                                    fswint,      fswsfc,     &
                                    rhoa,        flw,        &
+                                   flw1,        flw2,       & 
+                                   flw3,        flw4,       & 
+                                   flw5,        flw6,       & 
+                                   flw7,        flw8,       & 
+                                   flw9,        flw10,      & 
+                                   flw11,       flw12,      & 
+                                   flw13,       flw14,      & 
+                                   flw15,       flw16,      & 
                                    potT,        Qa,         &
                                    shcoef,      lhcoef,     &
                                    Iswabs,      Sswabs,     &
@@ -364,6 +452,14 @@ contains
                                    fcondtop,    fcondbot,   &
                                    fadvheat,                &
                                    flwoutn,     fsensn,     &
+                                   flwoutn1,    flwoutn2,   & 
+                                   flwoutn3,    flwoutn4,   & 
+                                   flwoutn5,    flwoutn6,   & 
+                                   flwoutn7,    flwoutn8,   & 
+                                   flwoutn9,    flwoutn10,  & 
+                                   flwoutn11,   flwoutn12,  & 
+                                   flwoutn13,   flwoutn14,  & 
+                                   flwoutn15,   flwoutn16,  &
                                    flatn,       fsurfn,     &
                                    lstop,       stop_label)
 
@@ -386,6 +482,22 @@ contains
          fcondbot    , & ! downward cond flux at bottom surface (W m-2)
          flwoutn     , & ! upward LW at surface (W m-2)
          fsensn      , & ! surface downward sensible heat (W m-2)
+         flwoutn1,     & ! upward LW at surface band 1 (W m-2)
+         flwoutn2,     & ! upward LW at surface band 2 (W m-2)
+         flwoutn3,     & ! upward LW at surface band 3 (W m-2)
+         flwoutn4,     & ! upward LW at surface band 4 (W m-2)
+         flwoutn5,     & ! upward LW at surface band 5 (W m-2)
+         flwoutn6,     & ! upward LW at surface band 6 (W m-2)
+         flwoutn7,     & ! upward LW at surface band 7 (W m-2)
+         flwoutn8,     & ! upward LW at surface band 8 (W m-2)
+         flwoutn9,     & ! upward LW at surface band 9 (W m-2)
+         flwoutn10,    & ! upward LW at surface band 10 (W m-2)
+         flwoutn11,    & ! upward LW at surface band 11 (W m-2)
+         flwoutn12,    & ! upward LW at surface band 12 (W m-2)
+         flwoutn13,    & ! upward LW at surface band 13 (W m-2)
+         flwoutn14,    & ! upward LW at surface band 14 (W m-2)
+         flwoutn15,    & ! upward LW at surface band 15 (W m-2)
+         flwoutn16,    & ! upward LW at surface band 16 (W m-2)
          flatn       , & ! surface downward latent heat (W m-2)
          fsurfn      , & ! net flux to top surface, excluding fcondtop
          fadvheat        ! flow of heat to ocean due to advection (W m-2)
@@ -429,6 +541,22 @@ contains
          fswsfc      , & ! SW absorbed at ice/snow surface (W m-2)
          rhoa        , & ! air density (kg/m^3)
          flw         , & ! incoming longwave radiation (W/m^2)
+         flw1        , & ! incoming longwave radiation band 1 (W/m^2)
+         flw2        , & ! incoming longwave radiation band 2 (W/m^2)
+         flw3        , & ! incoming longwave radiation band 3 (W/m^2)
+         flw4        , & ! incoming longwave radiation band 4 (W/m^2)
+         flw5        , & ! incoming longwave radiation band 5 (W/m^2)
+         flw6        , & ! incoming longwave radiation band 6 (W/m^2)
+         flw7        , & ! incoming longwave radiation band 7 (W/m^2)
+         flw8        , & ! incoming longwave radiation band 8 (W/m^2)
+         flw9        , & ! incoming longwave radiation band 9 (W/m^2)
+         flw10       , & ! incoming longwave radiation band 10 (W/m^2)
+         flw11       , & ! incoming longwave radiation band 11 (W/m^2)
+         flw12       , & ! incoming longwave radiation band 12 (W/m^2)
+         flw13       , & ! incoming longwave radiation band 13 (W/m^2)
+         flw14       , & ! incoming longwave radiation band 14 (W/m^2)
+         flw15       , & ! incoming longwave radiation band 15 (W/m^2)
+         flw16       , & ! incoming longwave radiation band 16 (W/m^2)
          potT        , & ! air potential temperature (K)
          Qa          , & ! specific humidity (kg/kg)
          shcoef      , & ! transfer coefficient for sensible heat
@@ -469,11 +597,27 @@ contains
                           Tbot,               &
                           fswint,   fswsfc,   &
                           rhoa,     flw,      &
+                          flw1,     flw2,     & 
+                          flw3,     flw4,     & 
+                          flw5,     flw6,     &  
+                          flw7,     flw8,     & 
+                          flw9,     flw10,    & 
+                          flw11,    flw12,    & 
+                          flw13,    flw14,    & 
+                          flw15,    flw16,    &  
                           potT,     Qa,       &
                           shcoef,   lhcoef,   &
                           fcondtop, fcondbot, &
                           fadvheat,           &
                           flwoutn,  fsensn,   &
+                          flwoutn1, flwoutn2,& 
+                          flwoutn3, flwoutn4,& 
+                          flwoutn5, flwoutn6,& 
+                          flwoutn7, flwoutn8,& 
+                          flwoutn9, flwoutn10,& 
+                          flwoutn11, flwoutn12,& 
+                          flwoutn13, flwoutn14,& 
+                          flwoutn15, flwoutn16,&
                           flatn,    fsurfn,   &
                           qpond,    qocn,     &
                           Spond,    sss,      &
@@ -515,11 +659,27 @@ contains
                              Tbot,               &
                              fswint,   fswsfc,   &
                              rhoa,     flw,      &
+                             flw1,     flw2,     & 
+                             flw3,     flw4,     & 
+                             flw5,     flw6,     & 
+                             flw7,     flw8,     & 
+                             flw9,     flw10,    & 
+                             flw11,    flw12,    & 
+                             flw13,    flw14,    & 
+                             flw15,    flw16,    & 
                              potT,     Qa,       &
                              shcoef,   lhcoef,   &
                              fcondtop, fcondbot, &
                              fadvheat,           &
                              flwoutn,  fsensn,   &
+                             flwoutn1, flwoutn2,& 
+                             flwoutn3, flwoutn4,& 
+                             flwoutn5, flwoutn6,& 
+                             flwoutn7, flwoutn8,& 
+                             flwoutn9, flwoutn10,& 
+                             flwoutn11, flwoutn12,& 
+                             flwoutn13, flwoutn14,& 
+                             flwoutn15, flwoutn16,&
                              flatn,    fsurfn,   &
                              qpond,    qocn,     &
                              Spond,    sss,      &
@@ -568,11 +728,27 @@ contains
                           Tbot,               &
                           fswint,   fswsfc,   &
                           rhoa,     flw,      &
+                          flw1,     flw2,     & 
+                          flw3,     flw4,     & 
+                          flw5,     flw6,     & 
+                          flw7,     flw8,     & 
+                          flw9,     flw10,    & 
+                          flw11,    flw12,    & 
+                          flw13,    flw14,    & 
+                          flw15,    flw16,    & 
                           potT,     Qa,       &
                           shcoef,   lhcoef,   &
                           fcondtop, fcondbot, &
                           fadvheat,           &
                           flwoutn,  fsensn,   &
+                          flwoutn1, flwoutn2,& 
+                          flwoutn3, flwoutn4,& 
+                          flwoutn5, flwoutn6,& 
+                          flwoutn7, flwoutn8,& 
+                          flwoutn9, flwoutn10,& 
+                          flwoutn11, flwoutn12,& 
+                          flwoutn13, flwoutn14,& 
+                          flwoutn15, flwoutn16,&
                           flatn,    fsurfn,   &
                           qpond,    qocn,     &
                           Spond,    sss,      &
@@ -617,11 +793,27 @@ contains
                              Tbot,               &
                              fswint,   fswsfc,   &
                              rhoa,     flw,      &
+                             flw1,     flw2,     & 
+                             flw3,     flw4,     & 
+                             flw5,     flw6,     & 
+                             flw7,     flw8,     & 
+                             flw9,     flw10,    & 
+                             flw11,    flw12,    & 
+                             flw13,    flw14,    & 
+                             flw15,    flw16,    & 
                              potT,     Qa,       &
                              shcoef,   lhcoef,   &
                              fcondtop, fcondbot, &
                              fadvheat,           &
                              flwoutn,  fsensn,   &
+                             flwoutn1, flwoutn2,& 
+                             flwoutn3, flwoutn4,& 
+                             flwoutn5, flwoutn6,& 
+                             flwoutn7, flwoutn8,& 
+                             flwoutn9, flwoutn10,& 
+                             flwoutn11, flwoutn12,& 
+                             flwoutn13, flwoutn14,& 
+                             flwoutn15, flwoutn16,&
                              flatn,    fsurfn,   &
                              qpond,    qocn,     &
                              Spond,    sss,      &
@@ -670,6 +862,14 @@ contains
                                      w,           dt,         &
                                      fswint,      fswsfc,     &
                                      rhoa,        flw,        &
+                                     flw1,        flw2,       & 
+                                     flw3,        flw4,       & 
+                                     flw5,        flw6,       & 
+                                     flw7,        flw8,       & 
+                                     flw9,        flw10,      & 
+                                     flw11,       flw12,      & 
+                                     flw13,       flw14,      & 
+                                     flw15,       flw16,      & 
                                      potT,        Qa,         &
                                      shcoef,      lhcoef,     &
                                      Iswabs,      Sswabs,     &
@@ -679,6 +879,14 @@ contains
                                      fcondtop,    fcondbot,   &
                                      fadvheat,                &
                                      flwoutn,     fsensn,     &
+                                     flwoutn1,    flwoutn2,   & 
+                                     flwoutn3,    flwoutn4,   & 
+                                     flwoutn5,    flwoutn6,   & 
+                                     flwoutn7,    flwoutn8,   & 
+                                     flwoutn9,    flwoutn10,  & 
+                                     flwoutn11,   flwoutn12,  & 
+                                     flwoutn13,   flwoutn14,  & 
+                                     flwoutn15,   flwoutn16,  &
                                      flatn,       fsurfn,     &
                                      lstop,       stop_label)
     
@@ -704,6 +912,22 @@ contains
          fcondbot    , & ! downward cond flux at bottom surface (W m-2)
          flwoutn     , & ! upward LW at surface (W m-2)
          fsensn      , & ! surface downward sensible heat (W m-2)
+         flwoutn1,     & ! upward LW at surface band 1 (W m-2)
+         flwoutn2,     & ! upward LW at surface band 2 (W m-2)
+         flwoutn3,     & ! upward LW at surface band 3 (W m-2)
+         flwoutn4,     & ! upward LW at surface band 4 (W m-2)
+         flwoutn5,     & ! upward LW at surface band 5 (W m-2)
+         flwoutn6,     & ! upward LW at surface band 6 (W m-2)
+         flwoutn7,     & ! upward LW at surface band 7 (W m-2)
+         flwoutn8,     & ! upward LW at surface band 8 (W m-2)
+         flwoutn9,     & ! upward LW at surface band 9 (W m-2)
+         flwoutn10,    & ! upward LW at surface band 10 (W m-2)
+         flwoutn11,    & ! upward LW at surface band 11 (W m-2)
+         flwoutn12,    & ! upward LW at surface band 12 (W m-2)
+         flwoutn13,    & ! upward LW at surface band 13 (W m-2)
+         flwoutn14,    & ! upward LW at surface band 14 (W m-2)
+         flwoutn15,    & ! upward LW at surface band 15 (W m-2)
+         flwoutn16,    & ! upward LW at surface band 16 (W m-2)
          flatn       , & ! surface downward latent heat (W m-2)
          fsurfn      , & ! net flux to top surface, excluding fcondtop
          fadvheat        ! flow of heat to ocean due to advection (W m-2)
@@ -747,6 +971,22 @@ contains
          fswsfc      , & ! SW absorbed at ice/snow surface (W m-2)
          rhoa        , & ! air density (kg/m^3)
          flw         , & ! incoming longwave radiation (W/m^2)
+         flw1        , & ! incoming longwave radiation band 1 (W/m^2)
+         flw2        , & ! incoming longwave radiation band 2 (W/m^2)
+         flw3        , & ! incoming longwave radiation band 3 (W/m^2)
+         flw4        , & ! incoming longwave radiation band 4 (W/m^2)
+         flw5        , & ! incoming longwave radiation band 5 (W/m^2)
+         flw6        , & ! incoming longwave radiation band 6 (W/m^2)
+         flw7        , & ! incoming longwave radiation band 7 (W/m^2)
+         flw8        , & ! incoming longwave radiation band 8 (W/m^2)
+         flw9        , & ! incoming longwave radiation band 9 (W/m^2)
+         flw10       , & ! incoming longwave radiation band 10 (W/m^2)
+         flw11       , & ! incoming longwave radiation band 11 (W/m^2)
+         flw12       , & ! incoming longwave radiation band 12 (W/m^2)
+         flw13       , & ! incoming longwave radiation band 13 (W/m^2)
+         flw14       , & ! incoming longwave radiation band 14 (W/m^2)
+         flw15       , & ! incoming longwave radiation band 15 (W/m^2)
+         flw16       , & ! incoming longwave radiation band 16 (W/m^2
          potT        , & ! air potential temperature (K)
          Qa          , & ! specific humidity (kg/kg)
          shcoef      , & ! transfer coefficient for sensible heat
@@ -790,11 +1030,27 @@ contains
                           Tbot,               &
                           fswint,   fswsfc,   &
                           rhoa,     flw,      &
+                          flw1,     flw2,     & 
+                          flw3,     flw4,     & 
+                          flw5,     flw6,     & 
+                          flw7,     flw8,     & 
+                          flw9,     flw10,    & 
+                          flw11,    flw12,    & 
+                          flw13,    flw14,    & 
+                          flw15,    flw16,    &  
                           potT,     Qa,       &
                           shcoef,   lhcoef,   &
                           fcondtop, fcondbot, &
                           fadvheat,           &
                           flwoutn,  fsensn,   &
+                          flwoutn1, flwoutn2,& 
+                          flwoutn3, flwoutn4,& 
+                          flwoutn5, flwoutn6,& 
+                          flwoutn7, flwoutn8,& 
+                          flwoutn9, flwoutn10,& 
+                          flwoutn11, flwoutn12,& 
+                          flwoutn13, flwoutn14,& 
+                          flwoutn15, flwoutn16,& 
                           flatn,    fsurfn,   &
                           qpond,    qocn,     &
                           Spond,    sss,      &
@@ -834,11 +1090,27 @@ contains
                              Tbot,               &
                              fswint,   fswsfc,   &
                              rhoa,     flw,      & 
+                             flw1,     flw2,     & 
+                             flw3,     flw4,     & 
+                             flw5,     flw6,     & 
+                             flw7,     flw8,     & 
+                             flw9,     flw10,    & 
+                             flw11,    flw12,    & 
+                             flw13,    flw14,    & 
+                             flw15,    flw16,    & 
                              potT,     Qa,       &
                              shcoef,   lhcoef,   &
                              fcondtop, fcondbot, &
                              fadvheat,           &
                              flwoutn,  fsensn,   &
+                             flwoutn1, flwoutn2,& 
+                             flwoutn3, flwoutn4,& 
+                             flwoutn5, flwoutn6,& 
+                             flwoutn7, flwoutn8,& 
+                             flwoutn9, flwoutn10,& 
+                             flwoutn11, flwoutn12,& 
+                             flwoutn13, flwoutn14,& 
+                             flwoutn15, flwoutn16,&
                              flatn,    fsurfn,   &
                              qpond,    qocn,     &
                              Spond,    sss,      &
@@ -887,11 +1159,27 @@ contains
                           Tbot,               &
                           fswint,   fswsfc,   &
                           rhoa,     flw,      &
+                          flw1,     flw2,     & 
+                          flw3,     flw4,     & 
+                          flw5,     flw6,     & 
+                          flw7,     flw8,     & 
+                          flw9,     flw10,    & 
+                          flw11,    flw12,    & 
+                          flw13,    flw14,    & 
+                          flw15,    flw16,    & 
                           potT,     Qa,       &
                           shcoef,   lhcoef,   &
                           fcondtop, fcondbot, &
                           fadvheat,           &
                           flwoutn,  fsensn,   &
+                          flwoutn1, flwoutn2,& 
+                          flwoutn3, flwoutn4,& 
+                          flwoutn5, flwoutn6,& 
+                          flwoutn7, flwoutn8,& 
+                          flwoutn9, flwoutn10,& 
+                          flwoutn11, flwoutn12,& 
+                          flwoutn13, flwoutn14,& 
+                          flwoutn15, flwoutn16,&
                           flatn,    fsurfn,   &
                           qpond,    qocn,     &
                           Spond,    sss,      &
@@ -935,11 +1223,27 @@ contains
                              Tbot,               &
                              fswint,   fswsfc,   &
                              rhoa,     flw,      &
+                             flw1,     flw2,     & 
+                             flw3,     flw4,     & 
+                             flw5,     flw6,     & 
+                             flw7,     flw8,     & 
+                             flw9,     flw10,    & 
+                             flw11,    flw12,    & 
+                             flw13,    flw14,    & 
+                             flw15,    flw16,    & 
                              potT,     Qa,       &
                              shcoef,   lhcoef,   &
                              fcondtop, fcondbot, &
                              fadvheat,           &
                              flwoutn,  fsensn,   &
+                             flwoutn1, flwoutn2,& 
+                             flwoutn3, flwoutn4,& 
+                             flwoutn5, flwoutn6,& 
+                             flwoutn7, flwoutn8,& 
+                             flwoutn9, flwoutn10,& 
+                             flwoutn11, flwoutn12,& 
+                             flwoutn13, flwoutn14,& 
+                             flwoutn15, flwoutn16,&
                              flatn,    fsurfn,   &
                              qpond,    qocn,     &
                              Spond,    sss,      &
@@ -1137,11 +1441,27 @@ contains
                            Tbot,               &
                            fswint,   fswsfc,   &
                            rhoa,     flw,      &
+                           flw1,     flw2,     & 
+                           flw3,     flw4,     & 
+                           flw5,     flw6,     & 
+                           flw7,     flw8,     & 
+                           flw9,     flw10,    & 
+                           flw11,    flw12,    & 
+                           flw13,    flw14,    & 
+                           flw15,    flw16,    & 
                            potT,     Qa,       &
                            shcoef,   lhcoef,   &
                            fcondtop, fcondbot, &
                            fadvheat,           &
                            flwoutn,  fsensn,   &
+                           flwoutn1, flwoutn2,& 
+                           flwoutn3, flwoutn4,& 
+                           flwoutn5, flwoutn6,& 
+                           flwoutn7, flwoutn8,& 
+                           flwoutn9, flwoutn10,& 
+                           flwoutn11, flwoutn12,& 
+                           flwoutn13, flwoutn14,& 
+                           flwoutn15, flwoutn16,&
                            flatn,    fsurfn,   &
                            qpond,    qocn,     &
                            Spond,    sss,      &
@@ -1190,6 +1510,22 @@ contains
     real(kind=dbl_kind), intent(out) :: &
          flwoutn       , & ! upward LW at surface (W m-2)
          fsensn        , & ! surface downward sensible heat (W m-2)
+         flwoutn1,     & ! upward LW at surface band 1 (W m-2)
+         flwoutn2,     & ! upward LW at surface band 2 (W m-2)
+         flwoutn3,     & ! upward LW at surface band 3 (W m-2)
+         flwoutn4,     & ! upward LW at surface band 4 (W m-2)
+         flwoutn5,     & ! upward LW at surface band 5 (W m-2)
+         flwoutn6,     & ! upward LW at surface band 6 (W m-2)
+         flwoutn7,     & ! upward LW at surface band 7 (W m-2)
+         flwoutn8,     & ! upward LW at surface band 8 (W m-2)
+         flwoutn9,     & ! upward LW at surface band 9 (W m-2)
+         flwoutn10,    & ! upward LW at surface band 10 (W m-2)
+         flwoutn11,    & ! upward LW at surface band 11 (W m-2)
+         flwoutn12,    & ! upward LW at surface band 12 (W m-2)
+         flwoutn13,    & ! upward LW at surface band 13 (W m-2)
+         flwoutn14,    & ! upward LW at surface band 14 (W m-2)
+         flwoutn15,    & ! upward LW at surface band 15 (W m-2)
+         flwoutn16,    & ! upward LW at surface band 16 (W m-2)
          flatn         , & ! surface downward latent heat (W m-2)
          fsurfn            ! net flux to top surface, excluding fcondtop
 
@@ -1202,6 +1538,22 @@ contains
          fswsfc        , & ! SW absorbed at ice/snow surface (W m-2)
          rhoa          , & ! air density (kg/m^3)
          flw           , & ! incoming longwave radiation (W/m^2)
+         flw1        , & ! incoming longwave radiation band 1 (W/m^2)
+         flw2        , & ! incoming longwave radiation band 2 (W/m^2)
+         flw3        , & ! incoming longwave radiation band 3 (W/m^2)
+         flw4        , & ! incoming longwave radiation band 4 (W/m^2)
+         flw5        , & ! incoming longwave radiation band 5 (W/m^2)
+         flw6        , & ! incoming longwave radiation band 6 (W/m^2)
+         flw7        , & ! incoming longwave radiation band 7 (W/m^2)
+         flw8        , & ! incoming longwave radiation band 8 (W/m^2)
+         flw9        , & ! incoming longwave radiation band 9 (W/m^2)
+         flw10       , & ! incoming longwave radiation band 10 (W/m^2)
+         flw11       , & ! incoming longwave radiation band 11 (W/m^2)
+         flw12       , & ! incoming longwave radiation band 12 (W/m^2)
+         flw13       , & ! incoming longwave radiation band 13 (W/m^2)
+         flw14       , & ! incoming longwave radiation band 14 (W/m^2)
+         flw15       , & ! incoming longwave radiation band 15 (W/m^2)
+         flw16       , & ! incoming longwave radiation band 16 (W/m^2)
          potT          , & ! air potential temperature (K)
          Qa            , & ! specific humidity (kg/kg)
          shcoef        , & ! transfer coefficient for sensible heat
@@ -1283,18 +1635,45 @@ contains
     picard: do nit = 1, nit_max
 
        ! surface heat flux
-       call surface_heat_flux(Tsf,     fswsfc, &
-                              rhoa,    flw,    &
-                              potT,    Qa,     &
-                              shcoef,  lhcoef, &
-                              flwoutn, fsensn, &
-                              flatn,   fsurfn)
+       call surface_heat_flux(Tsf    , fswsfc, &
+                              rhoa   , flw   , &
+                              flw1,    flw2,   & 
+                              flw3,    flw4,   & 
+                              flw5,    flw6,   & 
+                              flw7,    flw8,   & 
+                              flw9,    flw10,  & 
+                              flw11,   flw12,  & 
+                              flw13,   flw14,  & 
+                              flw15,   flw16,  & 
+                              potT   , Qa    , &
+                              shcoef , lhcoef, &
+                              flwoutn,         &
+                              flwoutn1, flwoutn2,& 
+                              flwoutn3, flwoutn4,& 
+                              flwoutn5, flwoutn6,& 
+                              flwoutn7, flwoutn8,& 
+                              flwoutn9, flwoutn10,& 
+                              flwoutn11, flwoutn12,& 
+                              flwoutn13, flwoutn14,& 
+                              flwoutn15, flwoutn16,& 
+                              fsensn, &
+                              flatn  , fsurfn, &
+                              lsnow)
 
        ! derivative of heat flux with respect to surface temperature
        call dsurface_heat_flux_dTsf(Tsf,          fswsfc,        &
                                     rhoa,         flw,           &
                                     potT,         Qa,            &
                                     shcoef,       lhcoef,        &
+                                    flwoutn,      flwoutn1,      &
+                                    flwoutn2,     flwoutn3,      &
+                                    flwoutn4,     flwoutn5,      &
+                                    flwoutn6,     flwoutn7,      &
+                                    flwoutn8,     flwoutn9,      &
+                                    flwoutn10,    flwoutn11,     &
+                                    flwoutn12,    flwoutn13,      &
+                                    flwoutn14,    flwoutn15,     &
+                                    flwoutn16,    lsnow,        &
                                     dfsurfn_dTsf, dflwoutn_dTsf, &
                                     dfsensn_dTsf, dflatn_dTsf)
 
@@ -1366,10 +1745,28 @@ contains
     ! final surface heat flux
     call surface_heat_flux(Tsf,     fswsfc, &
                            rhoa,    flw,    &
+                           flw1,    flw2,   & 
+                           flw3,    flw4,   & 
+                           flw5,    flw6,   & 
+                           flw7,    flw8,   & 
+                           flw9,    flw10,  & 
+                           flw11,   flw12,  & 
+                           flw13,   flw14,  & 
+                           flw15,   flw16,  & 
                            potT,    Qa,     &
                            shcoef,  lhcoef, &
-                           flwoutn, fsensn, &
-                           flatn,   fsurfn)
+                           flwoutn,         &
+                           flwoutn1, flwoutn2,& 
+                           flwoutn3, flwoutn4,& 
+                           flwoutn5, flwoutn6,& 
+                           flwoutn7, flwoutn8,& 
+                           flwoutn9, flwoutn10,& 
+                           flwoutn11, flwoutn12,& 
+                           flwoutn13, flwoutn14,& 
+                           flwoutn15, flwoutn16,&
+                           fsensn, &
+                           flatn,   fsurfn, &
+                           lsnow)
 
     ! if not converged
     if (.not. lconverged) then

@@ -41,6 +41,14 @@
       subroutine zerolayer_temperature(dt,                 & 
                                        nilyr,    nslyr,    &
                                        rhoa,     flw,      &
+                                       flw1,     flw2,     & 
+                                       flw3,     flw4,     & 
+                                       flw5,     flw6,     & 
+                                       flw7,     flw8,     & 
+                                       flw9,     flw10,    & 
+                                       flw11,    flw12,    & 
+                                       flw13,    flw14,    & 
+                                       flw15,    flw16,    & 
                                        potT,     Qa,       &
                                        shcoef,   lhcoef,   &
                                        fswsfc,             &
@@ -48,6 +56,14 @@
                                        Tsf,      Tbot,     &
                                        fsensn,   flatn,    &
                                        flwoutn,  fsurfn,   &
+                                       flwoutn1, flwoutn2, &
+                                       flwoutn3, flwoutn4, &
+                                       flwoutn5, flwoutn6, &
+                                       flwoutn7, flwoutn8, &
+                                       flwoutn9, flwoutn10,  &
+                                       flwoutn11, flwoutn12, &
+                                       flwoutn13, flwoutn14, &
+                                       flwoutn15, flwoutn16, &
                                        fcondtopn,fcondbot, &
                                        l_stop,   stop_label)
 
@@ -61,6 +77,22 @@
       real (kind=dbl_kind), intent(in) :: &
          rhoa        , & ! air density (kg/m^3)
          flw         , & ! incoming longwave radiation (W/m^2)
+         flw1        , & ! incoming longwave radiation band 1 (W/m^2)
+         flw2        , & ! incoming longwave radiation band 2 (W/m^2)
+         flw3        , & ! incoming longwave radiation band 3 (W/m^2)
+         flw4        , & ! incoming longwave radiation band 4 (W/m^2)
+         flw5        , & ! incoming longwave radiation band 5 (W/m^2)
+         flw6        , & ! incoming longwave radiation band 6 (W/m^2)
+         flw7        , & ! incoming longwave radiation band 7 (W/m^2)
+         flw8        , & ! incoming longwave radiation band 8 (W/m^2)
+         flw9        , & ! incoming longwave radiation band 9 (W/m^2)
+         flw10       , & ! incoming longwave radiation band 10 (W/m^2)
+         flw11       , & ! incoming longwave radiation band 11 (W/m^2)
+         flw12       , & ! incoming longwave radiation band 12 (W/m^2)
+         flw13       , & ! incoming longwave radiation band 13 (W/m^2)
+         flw14       , & ! incoming longwave radiation band 14 (W/m^2)
+         flw15       , & ! incoming longwave radiation band 15 (W/m^2)
+         flw16       , & ! incoming longwave radiation band 16 (W/m^2)
          potT        , & ! air potential temperature  (K)
          Qa          , & ! specific humidity (kg/kg)
          shcoef      , & ! transfer coefficient for sensible heat
@@ -76,6 +108,22 @@
          fsensn      , & ! surface downward sensible heat (W m-2)
          flatn       , & ! surface downward latent heat (W m-2)
          flwoutn     , & ! upward LW at surface (W m-2)
+         flwoutn1,     & ! upward LW at surface band 1 (W m-2)
+         flwoutn2,     & ! upward LW at surface band 2 (W m-2)
+         flwoutn3,     & ! upward LW at surface band 3 (W m-2)
+         flwoutn4,     & ! upward LW at surface band 4 (W m-2)
+         flwoutn5,     & ! upward LW at surface band 5 (W m-2)
+         flwoutn6,     & ! upward LW at surface band 6 (W m-2)
+         flwoutn7,     & ! upward LW at surface band 7 (W m-2)
+         flwoutn8,     & ! upward LW at surface band 8 (W m-2)
+         flwoutn9,     & ! upward LW at surface band 9 (W m-2)
+         flwoutn10,    & ! upward LW at surface band 10 (W m-2)
+         flwoutn11,    & ! upward LW at surface band 11 (W m-2)
+         flwoutn12,    & ! upward LW at surface band 12 (W m-2)
+         flwoutn13,    & ! upward LW at surface band 13 (W m-2)
+         flwoutn14,    & ! upward LW at surface band 14 (W m-2)
+         flwoutn15,    & ! upward LW at surface band 15 (W m-2)
+         flwoutn16,    & ! upward LW at surface band 16 (W m-2)
          fsurfn      , & ! net flux to top surface, excluding fcondtopn
          fcondtopn       ! downward cond flux at top surface (W m-2)
 
@@ -162,12 +210,29 @@
             
             call surface_fluxes (Tsf,        fswsfc,            &
                                  rhoa,       flw,               &
+                                 flw1,       flw2,              & 
+                                 flw3,       flw4,              & 
+                                 flw5,       flw6,              & 
+                                 flw7,       flw8,              & 
+                                 flw9,       flw10,             & 
+                                 flw11,      flw12,             & 
+                                 flw13,      flw14,             & 
+                                 flw15,      flw16,             &
                                  potT,       Qa,                &
                                  shcoef,     lhcoef,            &
                                  flwoutn,    fsensn,            &
+                                 flwoutn1,  flwoutn2,           & 
+                                 flwoutn3,  flwoutn4,           & 
+                                 flwoutn5,  flwoutn6,           & 
+                                 flwoutn7,  flwoutn8,           & 
+                                 flwoutn9,  flwoutn10,          & 
+                                 flwoutn11, flwoutn12,          & 
+                                 flwoutn13, flwoutn14,          & 
+                                 flwoutn15, flwoutn16,          & 
                                  flatn,      fsurfn,            &
                                  dflwout_dT, dfsens_dT,         &
-                                 dflat_dT,   dfsurf_dT)
+                                 dflat_dT,   dfsurf_dT,         &
+                                 .false.)
 
       !-----------------------------------------------------------------
       ! Compute effective ice thickness (includes snow) and thermal 
