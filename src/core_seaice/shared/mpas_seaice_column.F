@@ -1200,8 +1200,9 @@ contains
          sensibleHeatFluxCouple, &
          surfaceHeatFluxCouple, &
          surfaceConductiveFluxCouple, &
-         snowThicknessChangeCategory
-
+         snowThicknessChangeCategory, &
+         effectivePondAreaCategory
+         
     real(kind=RKIND), dimension(:,:,:), pointer :: &
          iceAreaCategory, &
          iceVolumeCategory, &
@@ -1405,7 +1406,8 @@ contains
        call MPAS_pool_get_array(shortwave, "absorbedShortwaveIceLayer", absorbedShortwaveIceLayer)
        call MPAS_pool_get_array(shortwave, "absorbedShortwaveSnowLayer", absorbedShortwaveSnowLayer)
        call MPAS_pool_get_array(shortwave, "solarZenithAngleCosine", solarZenithAngleCosine)
-
+       call MPAS_pool_get_array(shortwave,"effectivePondAreaCategory",effectivePondAreaCategory)
+       
        call MPAS_pool_get_array(aerosols, "atmosAerosolFlux", atmosAerosolFlux)
        call MPAS_pool_get_array(aerosols, "oceanAerosolFlux", oceanAerosolFlux)
 
@@ -1601,6 +1603,7 @@ contains
                meltOnset(iCell), &
                freezeOnset(iCell), &
                dayOfYear, &
+               effectivePondAreaCategory(:,iCell), &
                abortFlag, &
                abortMessage)
           call column_write_warnings(abortFlag)
