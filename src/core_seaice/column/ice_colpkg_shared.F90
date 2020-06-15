@@ -26,7 +26,8 @@
 
       character (char_len), public :: &
          conduct, &      ! 'MU71' or 'bubbly'
-         fbot_xfer_type  ! transfer coefficient type for ice-ocean heat flux
+         fbot_xfer_type, &  ! transfer coefficient type for ice-ocean heat flux
+         longwave  ! longwave radiation scheme 'SB', 'rrtmg' or 'rrtmgp'
 
       logical (kind=log_kind), public :: &
          heat_capacity, &! if true, ice has nonzero heat capacity

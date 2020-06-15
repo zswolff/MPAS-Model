@@ -465,7 +465,6 @@
                                             flwoutn,              &
                                             dfsurf_dT, dflwout_dT, &
                                             dfsens_dT, dflat_dT, &
-                                            l_snow, &
                                             flwoutn1,     &
                                             flwoutn2, flwoutn3,    &
                                             flwoutn4, flwoutn5,    &
@@ -474,7 +473,8 @@
                                             flwoutn10, flwoutn11,  &
                                             flwoutn12, flwoutn13,  &
                                             flwoutn14, flwoutn15,  &
-                                            flwoutn16)
+                                            flwoutn16, &
+                                            l_snow)
 
       !-----------------------------------------------------------------
       ! Compute conductive flux at top surface, fcondtopn.

@@ -406,7 +406,7 @@
       if (heat_capacity) then   ! usual case
 
          if (ktherm == 2) then
-             if (longwave == 'rrtmg' .or. longwave == 'rrtmgp') then 
+             if (longwave == 'rrtmg' .or. longave == 'rrtmgp') then 
                 call temperature_changes_salinity(dt,                   & 
                                                   nilyr,     nslyr,     &
                                                   rhoa,      flw,       &

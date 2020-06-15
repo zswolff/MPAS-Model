@@ -49,7 +49,7 @@ contains
                                           flwoutn,  fsurfn, &                                          
                                           fcondtop, fcondbot, &
                                           fadvheat, snoice,   &
-                                          einit_old,              &
+                                          einit,          &
                                           lstop,    stop_label, & 
                                           flw1,     flw2,     & 
                                           flw3,     flw4,     & 
@@ -124,7 +124,7 @@ contains
          hpond           ! melt pond depth (m)
 
     real (kind=dbl_kind), intent(in) :: &
-         einit_old       ! initial energy of melting (J m-2)
+         einit       ! initial energy of melting (J m-2)
     
     real (kind=dbl_kind), dimension (:), intent(inout) :: &
          Sswabs      , & ! SW radiation absorbed in snow layers (W m-2)

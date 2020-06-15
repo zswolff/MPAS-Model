@@ -1513,6 +1513,11 @@
 			possible_values="'zero layer', 'BL99', or 'mushy'"
 			icepack_name="ktherm"
 		/>
+		<nml_option name="config_longwave_type" type="character" default_value="rrtmg" units="unitless"
+			description="Longwave phyiscs method."
+			possible_values="'SB', 'rrtmg', or 'rrtmgp'"
+			icepack_name="longwave"
+		/>
 		<nml_option name="config_heat_conductivity_type" type="character" default_value="bubbly" units="unitless"
 			description="Thermal conductivity type for BL99 thermodynamics. Options are Maykut and Untersteiner 1971 form (with Wettlaufer 1991 constants), or Pringle et al JGR 2007 'bubbly brine'"
 			possible_values="'MU71' or 'bubbly'"

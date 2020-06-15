@@ -837,7 +837,7 @@
               flwi_12= emissivity_ice12*(flw12)
               flwi_13= emissivity_ice13*(flw13)
               flwi_14= emissivity_ice14*(flw14)
-              flwi_15= emissivity_ice15_gp*(flw15)
+              flwi_15= emissivity_ice15*(flw15)
               flwi_16= emissivity_ice16_gp*(flw16)
                               
               
@@ -1053,8 +1053,8 @@
           
       else if (longwave=='rrtmgp') then 
               if (l_snow) then
-              flw_weight1 = -emissivity_snow1_gp*(flwoutn1/flwoutn)
-              flw_weight2 = -emissivity_snow2_gp*(flwoutn2/flwoutn)
+              flw_weight1 = -emissivity_snow1*(flwoutn1/flwoutn)
+              flw_weight2 = -emissivity_snow2*(flwoutn2/flwoutn)
               flw_weight3 = -emissivity_snow3*(flwoutn3/flwoutn)
               flw_weight4 = -emissivity_snow4*(flwoutn4/flwoutn)
               flw_weight5 = -emissivity_snow5*(flwoutn5/flwoutn)
@@ -1067,10 +1067,10 @@
               flw_weight12 =-emissivity_snow12*(flwoutn12/flwoutn)
               flw_weight13 =-emissivity_snow13*(flwoutn13/flwoutn)
               flw_weight14 =-emissivity_snow14*(flwoutn14/flwoutn)
-              flw_weight15 =-emissivity_snow15_gp*(flwoutn15/flwoutn)
-              flw_weight16 = -emissivity_snow16_gp*(flwoutn16/flwoutn)
+              flw_weight15 =-emissivity_snow15*(flwoutn15/flwoutn)
+              flw_weight16 = -emissivity_snow16*(flwoutn16/flwoutn)
           else
-              flw_weight1 = -emissivity_ice1_gp*(flwoutn1/flwoutn)
+              flw_weight1 = -emissivity_ice1*(flwoutn1/flwoutn)
               flw_weight2 = -emissivity_ice2*(flwoutn2/flwoutn)
               flw_weight3 = -emissivity_ice3*(flwoutn3/flwoutn)
               flw_weight4 = -emissivity_ice4*(flwoutn4/flwoutn)
@@ -1084,8 +1084,8 @@
               flw_weight12 =-emissivity_ice12*(flwoutn12/flwoutn)
               flw_weight13 =-emissivity_ice13*(flwoutn13/flwoutn)
               flw_weight14 =-emissivity_ice14*(flwoutn14/flwoutn)
-              flw_weight15 =-emissivity_ice15_gp*(flwoutn15/flwoutn)
-              flw_weight16 = -emissivity_ice16_gp*(flwoutn16/flwoutn)
+              flw_weight15 =-emissivity_ice15*(flwoutn15/flwoutn)
+              flw_weight16 = -emissivity_ice16*(flwoutn16/flwoutn)
           endif   
           emiss_weight = flw_weight1+flw_weight2+flw_weight3+flw_weight4+flw_weight5+&
           flw_weight6+flw_weight7+flw_weight8+flw_weight9+flw_weight10+flw_weight11+&
