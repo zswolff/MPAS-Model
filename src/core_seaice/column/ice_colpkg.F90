@@ -1800,10 +1800,10 @@
                                     dsnown      , frazil      , &
                                     lmask_n     , lmask_s     , &
                                     mlt_onset   , frz_onset   , &
-                                    yday        , apeffn,       &
+                                    yday        ,               &
                                     l_stop      ,               &
                                     stop_label  ,               &
-                                   prescribed_ice)
+                                    apeffn, prescribed_ice)
 
       use ice_aerosol, only: update_aerosol
       use ice_atmo, only: neutral_drag_coeffs
@@ -1816,7 +1816,7 @@
       use ice_meltpond_lvl, only: compute_ponds_lvl
       use ice_meltpond_topo, only: compute_ponds_topo
       use ice_snow, only: drain_snow
-      use ice_therm_shared, only: hi_min, rrtmg_longwave_flux
+      use ice_therm_shared, only: hi_min, rrtmg_longwave_flux, rrtmgp_longwave_flux, longwave_re_emitted_flux
       use ice_therm_vertical, only: frzmlt_bottom_lateral, thermo_vertical
       use ice_colpkg_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, &
           tr_pond_cesm, tr_pond_lvl, tr_pond_topo, tr_snow, tr_rsnw
@@ -1914,6 +1914,7 @@
          meltl       , & ! lateral ice melt         (m/step-->cm/day)
          mlt_onset   , & ! day of year that sfc melting begins
          frz_onset       ! day of year that freezing begins (congel or frazil)
+        
 
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          aicen_init  , & ! fractional area of ice
@@ -1926,7 +1927,6 @@
          alvl        , & ! level ice area fraction
          vlvl        , & ! level ice volume fraction
          apnd        , & ! melt pond area fraction
-         apeffn      , &
          hpnd        , & ! melt pond depth (m)
          ipnd        , & ! melt pond refrozen lid thickness (m)
          iage        , & ! volume-weighted ice age
@@ -1953,7 +1953,8 @@
          congeln     , & ! congelation ice growth          (m)
          snoicen     , & ! snow-ice growth                 (m)
          dsnown          ! change in snow thickness (m/step-->cm/day)
-
+       real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+         apeffn
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          zqsn        , & ! snow layer enthalpy (J m-3)
          zqin        , & ! ice layer enthalpy (J m-3)
@@ -2017,7 +2018,9 @@
          flw14, &
          flw15, &
          flw16, & 
-         flwnew
+         flwnew, &
+         flwdrem_ice , &
+         flwdrem_snow
          
       real (kind=dbl_kind) :: &
          raice       , & ! 1/aice
@@ -2046,7 +2049,7 @@
 
       character (len=char_len_long) :: & 
          warning    
-       T_eq= (flw/stefan_boltzmann)**0.25  
+        
       !-----------------------------------------------------------------
       ! Adjust frzmlt to account for ice-ocean heat fluxes since last
       !  call to coupler.
@@ -2181,26 +2184,36 @@
                                 fcondtopn  (n))
             endif
             
-            
-            call rrtmg_longwave_flux(T_eq,   flw1, &
-                                     flw2,   flw3, & 
-                                     flw4,   flw5, &  
-                                     flw6,   flw7, &  
-                                     flw8,   flw9, &     
-                                     flw10,  flw11,&  
-                                     flw12,  flw13,&  
-                                     flw14,  flw15,&  
-                                     flw16)
-            flwnew = flw1+flw2+flw3+flw4+flw5+flw6+flw7+flw8+&
-                     flw9+flw10+flw11+flw12+flw13+flw14+flw15+flw16
+            if (longwave== 'rrtmg') then 
+                T_eq= (flw/stefan_boltzmann)**0.25
+                call rrtmg_longwave_flux(T_eq,   flw1, &
+                                         flw2,   flw3, & 
+                                         flw4,   flw5, &  
+                                         flw6,   flw7, &  
+                                         flw8,   flw9, &     
+                                         flw10,  flw11,&  
+                                         flw12,  flw13,&  
+                                         flw14,  flw15,&  
+                                         flw16)
+                 flwnew = flw1+flw2+flw3+flw4+flw5+flw6+flw7+flw8+&
+                      flw9+flw10+flw11+flw12+flw13+flw14+flw15+flw16
                      
-            if (flwnew-flw > 1e-10_dbl_kind .or. flwnew-flw <-1e-10_dbl_kind) then
-                write(warning, *) 'Thermo Error: incoming disagreement calc', flwnew-flw 
-                call add_warning(warning)
-                return 
-            endif
-                                     
-            call thermo_vertical(nilyr,        nslyr,        &
+                 if (flwnew-flw > 1e-10_dbl_kind .or. flwnew-flw <-1e-10_dbl_kind) then
+                     write(warning, *) 'Thermo Error: incoming disagreement calc', flwnew-flw 
+                 call add_warning(warning)
+                 return 
+                 endif
+                 call longwave_re_emitted_flux(flw1, flw2,  &
+                                        flw3, flw4,  &
+                                        flw5, flw6,  &
+                                        flw7, flw8,  &
+                                        flw9, flw10, &
+                                        flw11,flw12, &
+                                        flw13, flw14, &
+                                        flw16, flw16, &
+                                        flwdrem_ice, flwdrem_snow) 
+                 
+                 call thermo_vertical(nilyr,        nslyr,        &
                                  dt,           aicen    (n), &
                                  vicen    (n), vsnon    (n), &
                                  Tsfc     (n), zSin   (:,n), &
@@ -2209,15 +2222,76 @@
                                  tr_snow,      apnd     (n), &
                                  hpnd     (n), iage     (n), &
                                  tr_pond_topo,               &
-                                 flw,          flw1,         &
+                                 flw,          potT,         &
+                                 Qa,           rhoa,         &
+                                 fsnow,        fpond,        &
+                                 fbot,         Tbot,         &
+                                 sss,                        &
+                                 lhcoef,       shcoef,       &
+                                 fswsfcn  (n), fswintn  (n), &
+                                 Sswabsn(:,n), Iswabsn(:,n), &
+                                 fsurfn   (n), fcondtopn(n), &
+                                 fsensn   (n), flatn    (n), &
+                                 flwoutn,      evapn,        &
+                                 freshn,       fsaltn,       &
+                                 fhocnn,                     &
+                                 melttn   (n), meltsn   (n), &
+                                 meltbn   (n),               &
+                                 congeln  (n), snoicen  (n), &
+                                 mlt_onset,    frz_onset,    &
+                                 yday,         dsnown   (n), &
+                                 l_stop,       stop_label,   &
+                                 prescribed_ice,             &
+                                 flw1,                       &
                                  flw2,         flw3,         &
                                  flw4,         flw5,         &
                                  flw6,         flw7,         &
                                  flw8,         flw9,         &
                                  flw10,        flw11,        &
                                  flw12,        flw13,        &
-                                 flw14,        flw15,        &
-                                 flw16,        potT,         &
+                                 flw14,        flw15,        & 
+                                 flw16)
+                   
+            elseif (longwave == 'rrtmgp') then 
+                 T_eq= (flw/stefan_boltzmann)**0.25
+                 call rrtmgp_longwave_flux(T_eq,   flw1, &
+                                         flw2,   flw3, & 
+                                         flw4,   flw5, &  
+                                         flw6,   flw7, &  
+                                         flw8,   flw9, &     
+                                         flw10,  flw11,&  
+                                         flw12,  flw13,&  
+                                         flw14,  flw15,&  
+                                         flw16)
+                 flwnew = flw1+flw2+flw3+flw4+flw5+flw6+flw7+flw8+&
+                         flw9+flw10+flw11+flw12+flw13+flw14+flw15+flw16
+                         
+                 if (flwnew-flw > 1e-10_dbl_kind .or. flwnew-flw <-1e-10_dbl_kind) then
+                     write(warning, *) 'Thermo Error: incoming disagreement calc', flwnew-flw 
+                     call add_warning(warning)
+                     return 
+                 endif ! flw check
+                 
+                 call longwave_re_emitted_flux(flw1, flw2,  &
+                                        flw3, flw4,  &
+                                        flw5, flw6,  &
+                                        flw7, flw8,  &
+                                        flw9, flw10, &
+                                        flw11,flw12, &
+                                        flw13, flw14, &
+                                        flw16, flw16, &
+                                        flwdrem_ice, flwdrem_snow) 
+                                        
+                 call thermo_vertical(nilyr,        nslyr,        &
+                                 dt,           aicen    (n), &
+                                 vicen    (n), vsnon    (n), &
+                                 Tsfc     (n), zSin   (:,n), &
+                                 zqin   (:,n), zqsn   (:,n), &
+                                 smice  (:,n), smliq  (:,n), &
+                                 tr_snow,      apnd     (n), &
+                                 hpnd     (n), iage     (n), &
+                                 tr_pond_topo,               &
+                                 flw,          potT,         &
                                  Qa,           rhoa,         &
                                  fsnow,        fpond,        &
                                  fbot,         Tbot,         &
@@ -2237,13 +2311,58 @@
                                  yday,         dsnown   (n), &
                                  tr_rsnw,                    &
                                  l_stop,       stop_label,   &
-                                 prescribed_ice)
+                                 prescribed_ice,             &
+                                 flw1,                       &
+                                 flw2,         flw3,         &
+                                 flw4,         flw5,         &
+                                 flw6,         flw7,         &
+                                 flw8,         flw9,         &
+                                 flw10,        flw11,        &
+                                 flw12,        flw13,        &
+                                 flw14,        flw15,        & 
+                                 flw16)   
+                
+                if (l_stop) then
+             	 stop_label = 'ice: Vertical thermo error: '//trim(stop_label)
+                 return
+               endif
+            elseif(longwave == 'SB') then 
+            
+                call thermo_vertical(nilyr,        nslyr,        &
+                                     dt,           aicen    (n), &
+                                     vicen    (n), vsnon    (n), &
+                                     Tsfc     (n), zSin   (:,n), &
+                                     zqin   (:,n), zqsn   (:,n), &
+                                     smice  (:,n), smliq  (:,n), &
+                                     tr_snow,      apnd     (n), &
+                                     hpnd     (n), iage     (n), &
+                                     tr_pond_topo,               &
+                                     flw,          potT,         &
+                                     Qa,           rhoa,         &
+                                     fsnow,        fpond,        &
+                                     fbot,         Tbot,         &
+                                     sss,                        &
+                                     lhcoef,       shcoef,       &
+                                     fswsfcn  (n), fswintn  (n), &
+                                     Sswabsn(:,n), Iswabsn(:,n), &
+                                     fsurfn   (n), fcondtopn(n), &
+                                     fsensn   (n), flatn    (n), &
+                                     flwoutn,      evapn,        &
+                                     freshn,       fsaltn,       &
+                                     fhocnn,                     &
+                                     melttn   (n), meltsn   (n), &
+                                     meltbn   (n),               &
+                                     congeln  (n), snoicen  (n), &
+                                     mlt_onset,    frz_onset,    &
+                                     yday,         dsnown   (n), &
+                                     l_stop,       stop_label,   &
+                                     prescribed_ice)
                
             if (l_stop) then
-               stop_label = 'ice: Vertical thermo error: '//trim(stop_label)
+             	 stop_label = 'ice: Vertical thermo error: '//trim(stop_label)
                return
             endif
-               
+          endif
       !-----------------------------------------------------------------
       ! Total absorbed shortwave radiation
       !-----------------------------------------------------------------
@@ -2355,46 +2474,40 @@
       ! Increment area-weighted fluxes.
       !-----------------------------------------------------------------
 
-         if (aicen_init(n) > puny) &
-            call merge_fluxes (aicen_init(n),            &
-                               nslyr,                    &
-                               flw,        flw1,         &
-                               flw2,       flw,          &
-                               flw4,       flw5,          &
-                               flw6,       flw7,         &
-                               flw8,       flw9,         &
-                               flw10,      flw11,        &
-                               flw12,      flw13,        &
-                               flw14,      flw15,        &      
-                               flw16,      coszen,       & 
-                               strairxn,   strairyn,     &
-                               Cdn_atm_ratio_n,          &
-                               fsurfn(n),  fcondtopn(n), &
-                               fsensn(n),  flatn(n),     &
-                               fswabsn,    flwoutn,      &
-                               evapn,                    &
-                               Trefn,      Qrefn,        &
-                               freshn,     fsaltn,       &
-                               fhocnn,     fswthrun(n),  &
-                               strairxT,   strairyT,     &
-                               Cdn_atm_ratio,            &
-                               fsurf,      fcondtop,     &
-                               fsens,      flat,         &
-                               fswabs,     flwout,       &
-                               evap,                     &
-                               Tref,       Qref,         &
-                               fresh,      fsalt,        &
-                               fhocn,      fswthru,      &
-                               melttn (n), meltsn(n),    &
-                               meltbn (n), congeln(n),   &
-                               snoicen(n), meltsliqn(n), &
-                               meltt,      melts,        &
-                               meltb,      congel,       &
-                               snoice,     meltsliq,     &
-                               apeffn(n),                &
-                               vsnon(n),                 & 
-                               Uref,       Urefn)
-
+         if (aicen_init(n) > puny) then
+           call merge_fluxes          (aicen_init(n),            &
+                                       nslyr,                    &
+                                       flw,         coszen,      & 
+                                       strairxn,   strairyn,     &
+                                       Cdn_atm_ratio_n,          &
+                                       fsurfn(n),  fcondtopn(n), &
+                                       fsensn(n),  flatn(n),     &
+                                       fswabsn,    flwoutn,      &
+                                       evapn,                    &
+                                       Trefn,      Qrefn,        &
+                                       freshn,     fsaltn,       &
+                                       fhocnn,     fswthrun(n),  &
+                                       strairxT,   strairyT,     &
+                                       Cdn_atm_ratio,            &
+                                       fsurf,      fcondtop,     &
+                                       fsens,      flat,         &
+                                       fswabs,     flwout,       &
+                                       evap,                     &
+                                       Tref,       Qref,         &
+                                       fresh,      fsalt,        &
+                                       fhocn,      fswthru,      &
+                                       melttn (n), meltsn(n),    &
+                                       meltbn (n), congeln(n),   &
+                                       snoicen(n),               &
+                                       meltt,      melts,        &
+                                       meltb,      congel,       &
+                                       snoice,                   &
+                                       apeffn(n),                &
+                                       vsnon(n),                 &
+                                       flwdrem_ice,              &
+                                       flwdrem_snow,             &
+                                       Uref,       Urefn)
+         endif
       enddo                  ! ncat
 
       !-----------------------------------------------------------------
@@ -3736,14 +3849,8 @@
                                          frzmlt,    dt)
 
       use ice_constants_colpkg, only: c0, c1, c1000, &
-          cp_ocn, Tffresh, stefan_boltzmann, Lvap, cprho, &
-          emissivity_water1, emissivity_water2, emissivity_water3, &
-          emissivity_water4, emissivity_water5, emissivity_water6, &
-          emissivity_water7, emissivity_water8, emissivity_water9, &
-          emissivity_water10, emissivity_water11, emissivity_water12, &
-          emissivity_water13, emissivity_water14, emissivity_water15, &
-          emissivity_water16
-      use ice_therm_shared, only: rrtmg_longwave_flux    
+          cp_ocn, Tffresh, stefan_boltzmann, Lvap, cprho
+          
 
       real (kind=dbl_kind), intent(in) :: &
          alvdr_ocn , & ! visible, direct   (fraction)
@@ -4049,6 +4156,7 @@
 
       subroutine colpkg_init_parameters(&
            ktherm_in, &
+           longwave_in, & 
            conduct_in, &
            fbot_xfer_type_in, &
            calc_Tsfc_in, &
@@ -4242,6 +4350,7 @@
 
         use ice_colpkg_shared, only: &
              ktherm, &
+             longwave, &
              conduct, &
              fbot_xfer_type, &
              calc_Tsfc, &
@@ -4445,8 +4554,9 @@
 
         character (char_len), intent(in) :: &
              conduct_in, &      ! 'MU71' or 'bubbly'
-             fbot_xfer_type_in  ! transfer coefficient type for ice-ocean heat flux
-        
+             fbot_xfer_type_in, &  ! transfer coefficient type for ice-ocean heat flux
+             longwave_in  ! longwave radiation scheme 'SB', 'rrtmg' or 'rrtmgp'
+             
         logical (kind=log_kind), intent(in) :: &
              calc_Tsfc_in       ! if true, calculate surface temperature
                                 ! if false, Tsfc is computed elsewhere and
@@ -4762,6 +4872,7 @@
          use_smliq_pnd_in ! if true, use snow liquid tracer for ponds
 
         ktherm = ktherm_in
+        longwave = longwave_in 
         conduct = conduct_in
         fbot_xfer_type = fbot_xfer_type_in
         calc_Tsfc = calc_Tsfc_in

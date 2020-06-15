@@ -1849,9 +1849,9 @@ contains
                meltOnset(iCell), &
                freezeOnset(iCell), &
                dayOfYear, &
-               effectivePondAreaCategory(:,iCell), &
                abortFlag, &
-               abortMessage)
+               abortMessage, &
+               effectivePondAreaCategory(:,iCell))
           call column_write_warnings(abortFlag)
 
           ! cell-specific abort message
@@ -8798,6 +8798,7 @@ contains
 
     character(len=strKIND), pointer :: &
          config_thermodynamics_type, &
+         config_longwave_type, &
          config_heat_conductivity_type, &
          config_shortwave_type, &
          config_albedo_type, &
@@ -8855,6 +8856,7 @@ contains
     call MPAS_pool_get_dimension(domain % blocklist % dimensions, "nIceLayers", nIceLayers)
 
     call MPAS_pool_get_config(domain % configs, "config_thermodynamics_type", config_thermodynamics_type)
+    call MPAS_pool_get_config(domain % configs, "config_longwave_type", config_longwave_type)
     call MPAS_pool_get_config(domain % configs, "config_heat_conductivity_type", config_heat_conductivity_type)
     call MPAS_pool_get_config(domain % configs, "config_shortwave_type", config_shortwave_type)
     call MPAS_pool_get_config(domain % configs, "config_albedo_type", config_albedo_type)
@@ -8908,6 +8910,12 @@ contains
                trim(config_thermodynamics_type) == "BL99" .or. &
                trim(config_thermodynamics_type) == "mushy")) then
        call config_error("config_thermodynamics_type", config_thermodynamics_type, "'zero layer', 'BL99' or 'mushy'")
+    endif
+    
+    if (.not. (trim(config_longwave_type) == "SB" .or. &
+               trim(config_longwave_type) == "rrtmg" .or. &
+               trim(config_longwave_type) == "rrtmgp")) then
+       call config_error("config_longwave_type", config_longwave_type, "'SB', 'rrtmg' or 'rrtmgp'")
     endif
 
     ! check config_heat_conductivity_type value
@@ -9769,6 +9777,7 @@ contains
 
     character(len=strKIND), pointer :: &
          config_thermodynamics_type, &
+         config_longwave_type, &
          config_heat_conductivity_type, &
          config_shortwave_type, &
          config_albedo_type, &
@@ -9962,6 +9971,7 @@ contains
          config_boundary_layer_iteration_number
 
     call MPAS_pool_get_config(domain % configs, "config_thermodynamics_type", config_thermodynamics_type)
+    call MPAS_pool_get_config(domain % configs, "config_longwave_type", config_longwave_type)
     call MPAS_pool_get_config(domain % configs, "config_heat_conductivity_type", config_heat_conductivity_type)
     call MPAS_pool_get_config(domain % configs, "config_ocean_heat_transfer_type", config_ocean_heat_transfer_type)
     call MPAS_pool_get_config(domain % configs, "config_calc_surface_temperature", config_calc_surface_temperature)
@@ -10163,6 +10173,7 @@ contains
 
     call colpkg_init_parameters(&
          config_cice_int("config_thermodynamics_type", config_thermodynamics_type), &
+         config_longwave_type, &
          config_heat_conductivity_type, &
          config_ocean_heat_transfer_type, &
          config_calc_surface_temperature, &

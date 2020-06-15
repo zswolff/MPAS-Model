@@ -1,4 +1,4 @@
-!  SVN:$Id: ice_therm_0layer.F90 1196 2017-04-18 13:32:23Z eclare $
+!  SVN:$Id: ice_therm_0layer.F90 1182 2017-03-16 19:29:26Z njeffery $
 !=========================================================================
 !
 ! Update ice and snow internal temperatures
@@ -41,15 +41,6 @@
       subroutine zerolayer_temperature(dt,                 & 
                                        nilyr,    nslyr,    &
                                        rhoa,     flw,      &
-                                       potT,     Qa,       &
-                                       shcoef,   lhcoef,   &
-                                       fswsfc,             &
-                                       hilyr,    hslyr,    &
-                                       Tsf,      Tbot,     &
-                                       fsensn,   flatn,    &
-                                       flwoutn,  fsurfn,   &                                       
-                                       fcondtopn,fcondbot, &
-                                       l_stop,   stop_label,&
                                        flw1,     flw2,     & 
                                        flw3,     flw4,     & 
                                        flw5,     flw6,     & 
@@ -58,6 +49,13 @@
                                        flw11,    flw12,    & 
                                        flw13,    flw14,    & 
                                        flw15,    flw16,    & 
+                                       potT,     Qa,       &
+                                       shcoef,   lhcoef,   &
+                                       fswsfc,             &
+                                       hilyr,    hslyr,    &
+                                       Tsf,      Tbot,     &
+                                       fsensn,   flatn,    &
+                                       flwoutn,  fsurfn,   &
                                        flwoutn1, flwoutn2, &
                                        flwoutn3, flwoutn4, &
                                        flwoutn5, flwoutn6, &
@@ -65,7 +63,9 @@
                                        flwoutn9, flwoutn10,  &
                                        flwoutn11, flwoutn12, &
                                        flwoutn13, flwoutn14, &
-                                       flwoutn15, flwoutn16)
+                                       flwoutn15, flwoutn16, &
+                                       fcondtopn,fcondbot, &
+                                       l_stop,   stop_label)
 
       integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
@@ -77,13 +77,6 @@
       real (kind=dbl_kind), intent(in) :: &
          rhoa        , & ! air density (kg/m^3)
          flw         , & ! incoming longwave radiation (W/m^2)
-         potT        , & ! air potential temperature  (K)
-         Qa          , & ! specific humidity (kg/kg)
-         shcoef      , & ! transfer coefficient for sensible heat
-         lhcoef      , & ! transfer coefficient for latent heat
-         Tbot        , & ! ice bottom surface temperature (deg C)
-         fswsfc          ! SW absorbed at ice/snow surface (W m-2)
-      real (kind=dbl_kind), intent(in), optional :: &         
          flw1        , & ! incoming longwave radiation band 1 (W/m^2)
          flw2        , & ! incoming longwave radiation band 2 (W/m^2)
          flw3        , & ! incoming longwave radiation band 3 (W/m^2)
@@ -99,7 +92,14 @@
          flw13       , & ! incoming longwave radiation band 13 (W/m^2)
          flw14       , & ! incoming longwave radiation band 14 (W/m^2)
          flw15       , & ! incoming longwave radiation band 15 (W/m^2)
-         flw16           ! incoming longwave radiation band 16 (W/m^2)
+         flw16       , & ! incoming longwave radiation band 16 (W/m^2)
+         potT        , & ! air potential temperature  (K)
+         Qa          , & ! specific humidity (kg/kg)
+         shcoef      , & ! transfer coefficient for sensible heat
+         lhcoef      , & ! transfer coefficient for latent heat
+         Tbot        , & ! ice bottom surface temperature (deg C)
+         fswsfc          ! SW absorbed at ice/snow surface (W m-2)
+
       real (kind=dbl_kind), intent(in) :: &
          hilyr       , & ! ice layer thickness (m)
          hslyr           ! snow layer thickness (m)
@@ -108,10 +108,6 @@
          fsensn      , & ! surface downward sensible heat (W m-2)
          flatn       , & ! surface downward latent heat (W m-2)
          flwoutn     , & ! upward LW at surface (W m-2)
-         fsurfn      , & ! net flux to top surface, excluding fcondtopn
-         fcondtopn       ! downward cond flux at top surface (W m-2)
-         
-      real (kind=dbl_kind), intent(inout), optional:: &         
          flwoutn1,     & ! upward LW at surface band 1 (W m-2)
          flwoutn2,     & ! upward LW at surface band 2 (W m-2)
          flwoutn3,     & ! upward LW at surface band 3 (W m-2)
@@ -127,7 +123,9 @@
          flwoutn13,    & ! upward LW at surface band 13 (W m-2)
          flwoutn14,    & ! upward LW at surface band 14 (W m-2)
          flwoutn15,    & ! upward LW at surface band 15 (W m-2)
-         flwoutn16       ! upward LW at surface band 16 (W m-2)
+         flwoutn16,    & ! upward LW at surface band 16 (W m-2)
+         fsurfn      , & ! net flux to top surface, excluding fcondtopn
+         fcondtopn       ! downward cond flux at top surface (W m-2)
 
       real (kind=dbl_kind), intent(out):: &
          fcondbot        ! downward cond flux at bottom surface (W m-2)
@@ -212,13 +210,6 @@
             
             call surface_fluxes (Tsf,        fswsfc,            &
                                  rhoa,       flw,               &
-                                 potT,       Qa,                &
-                                 shcoef,     lhcoef,            &
-                                 flwoutn,    fsensn,            &
-                                 flatn,      fsurfn,            &
-                                 dflwout_dT, dfsens_dT,         &
-                                 dflat_dT,   dfsurf_dT,         &
-                                 .false., &
                                  flw1,       flw2,              & 
                                  flw3,       flw4,              & 
                                  flw5,       flw6,              & 
@@ -227,6 +218,9 @@
                                  flw11,      flw12,             & 
                                  flw13,      flw14,             & 
                                  flw15,      flw16,             &
+                                 potT,       Qa,                &
+                                 shcoef,     lhcoef,            &
+                                 flwoutn,    fsensn,            &
                                  flwoutn1,  flwoutn2,           & 
                                  flwoutn3,  flwoutn4,           & 
                                  flwoutn5,  flwoutn6,           & 
@@ -234,7 +228,11 @@
                                  flwoutn9,  flwoutn10,          & 
                                  flwoutn11, flwoutn12,          & 
                                  flwoutn13, flwoutn14,          & 
-                                 flwoutn15, flwoutn16)
+                                 flwoutn15, flwoutn16,          & 
+                                 flatn,      fsurfn,            &
+                                 dflwout_dT, dfsens_dT,         &
+                                 dflat_dT,   dfsurf_dT,         &
+                                 .false.)
 
       !-----------------------------------------------------------------
       ! Compute effective ice thickness (includes snow) and thermal 
