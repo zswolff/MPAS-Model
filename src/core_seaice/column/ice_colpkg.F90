@@ -2027,6 +2027,8 @@
          pond        , & ! water retained in ponds (m)
          T_eq            ! Equivalent Temperature for flw   
 
+      character (len=char_len_long) :: & 
+         warning    
       !---------------------------------------------------------------
       ! Initialize rate of snow loss to leads
       !---------------------------------------------------------------
@@ -2047,8 +2049,7 @@
          fsnow  =          fsnow*    worka
       endif ! snwredist
 
-      character (len=char_len_long) :: & 
-         warning    
+
         
       !-----------------------------------------------------------------
       ! Adjust frzmlt to account for ice-ocean heat fluxes since last
@@ -2226,7 +2227,7 @@
                                  Qa,           rhoa,         &
                                  fsnow,        fpond,        &
                                  fbot,         Tbot,         &
-                                 sss,                        &
+                                 sss,          rsnw   (:,n), &
                                  lhcoef,       shcoef,       &
                                  fswsfcn  (n), fswintn  (n), &
                                  Sswabsn(:,n), Iswabsn(:,n), &
@@ -2234,12 +2235,13 @@
                                  fsensn   (n), flatn    (n), &
                                  flwoutn,      evapn,        &
                                  freshn,       fsaltn,       &
-                                 fhocnn,                     &
+                                 fhocnn,       frain,        &
                                  melttn   (n), meltsn   (n), &
-                                 meltbn   (n),               &
+                                 meltbn   (n), meltsliqn(n), &
                                  congeln  (n), snoicen  (n), &
                                  mlt_onset,    frz_onset,    &
                                  yday,         dsnown   (n), &
+                                 tr_rsnw,                    &
                                  l_stop,       stop_label,   &
                                  prescribed_ice,             &
                                  flw1,                       &
@@ -2341,7 +2343,7 @@
                                      Qa,           rhoa,         &
                                      fsnow,        fpond,        &
                                      fbot,         Tbot,         &
-                                     sss,                        &
+                                     sss,          rsnw   (:,n), &              
                                      lhcoef,       shcoef,       &
                                      fswsfcn  (n), fswintn  (n), &
                                      Sswabsn(:,n), Iswabsn(:,n), &
@@ -2349,12 +2351,13 @@
                                      fsensn   (n), flatn    (n), &
                                      flwoutn,      evapn,        &
                                      freshn,       fsaltn,       &
-                                     fhocnn,                     &
+                                     fhocnn,       frain,        &
                                      melttn   (n), meltsn   (n), &
-                                     meltbn   (n),               &
+                                     meltbn   (n), meltsliqn(n), &
                                      congeln  (n), snoicen  (n), &
                                      mlt_onset,    frz_onset,    &
                                      yday,         dsnown   (n), &
+                                     tr_rsnw,                    &
                                      l_stop,       stop_label,   &
                                      prescribed_ice)
                
