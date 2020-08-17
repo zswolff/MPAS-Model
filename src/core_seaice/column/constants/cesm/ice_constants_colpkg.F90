@@ -133,7 +133,9 @@
       !-----------------------------------------------------------------
       real (kind=dbl_kind), parameter, public :: & 
         emissivity_ice1 = 0.925_dbl_kind ,&
+        emissivity_ice1_gp = 0.882_dbl_kind,& 
         emissivity_ice2 = 0.946_dbl_kind  ,&
+        emissivity_ice2_gp = 0.951_dbl_kind,&
         emissivity_ice3 = 0.931_dbl_kind ,&
         emissivity_ice4 = 0.920_dbl_kind ,&
         emissivity_ice5 = 0.911_dbl_kind  ,&
@@ -147,9 +149,14 @@
         emissivity_ice13 =0.959_dbl_kind ,&
         emissivity_ice14 =0.960_dbl_kind ,&
         emissivity_ice15 = 0.957_dbl_kind ,&
+        emissivity_ice15_gp=0.957_dbl_kind,& 
         emissivity_ice16 = 0.943_dbl_kind ,&
+        emissivity_ice16_gp = 0.938_dbl_kind,&
+        
         emissivity_snow1 = 0.992_dbl_kind ,&
+        emissivity_snow1_gp = 0.991_dbl_kind ,&
         emissivity_snow2 = 0.988_dbl_kind  ,&
+        emissivity_snow2_gp = 0.990_dbl_kind,& 
         emissivity_snow3 = 0.980_dbl_kind  ,&
         emissivity_snow4 =  0.972_dbl_kind ,&
         emissivity_snow5 = 0.964_dbl_kind  ,&
@@ -163,23 +170,9 @@
         emissivity_snow13 = 0.965_dbl_kind ,&
         emissivity_snow14 = 0.964_dbl_kind ,&
         emissivity_snow15 = 0.959_dbl_kind ,&
+        emissivity_snow15_gp = 0.957_dbl_kind ,&
         emissivity_snow16 = 0.939_dbl_kind ,&
-        emissivity_water1 =  0.892_dbl_kind ,&
-        emissivity_water2 = 0.908_dbl_kind  ,&
-        emissivity_water3 = 0.910_dbl_kind  ,&
-        emissivity_water4 =  0.922_dbl_kind ,&
-        emissivity_water5 =  0.944_dbl_kind ,&
-        emissivity_water6 = 0.978_dbl_kind  ,&
-        emissivity_water7 = 0.975_dbl_kind  ,&
-        emissivity_water8 = 0.971_dbl_kind  ,&
-        emissivity_water9 = 0.966_dbl_kind  ,&
-        emissivity_water10 = 0.963_dbl_kind ,&
-        emissivity_water11 = 0.962_dbl_kind ,&
-        emissivity_water12 = 0.964_dbl_kind ,&
-        emissivity_water13 = 0.961_dbl_kind ,&
-        emissivity_water14 = 0.961_dbl_kind ,&
-        emissivity_water15 = 0.959_dbl_kind ,&
-        emissivity_water16 = 0.952_dbl_kind ,&
+        emissivity_snow16_gp = 0.932_dbl_kind ,&
         Pond_flux = -294.552325433_dbl_kind,  &
         wvn1 = 10.0_dbl_kind ,&
         wvn2 =  350.0_dbl_kind,&
@@ -197,7 +190,10 @@
         wvn14 = 2250.0_dbl_kind,&
         wvn15 = 2380.0_dbl_kind,&
         wvn16 =2600.0_dbl_kind ,&
-        wvn17 =3250.0_dbl_kind
+        wvn17 =3250.0_dbl_kind, &
+        wvn2_gp = 250.0_dbl_kind,&
+        wvn15_gp = 2390.0_dbl_kind, &
+        wvn16_gp = 2680.0_dbl_kind
 
       !-----------------------------------------------------------------
       ! numbers used in column package

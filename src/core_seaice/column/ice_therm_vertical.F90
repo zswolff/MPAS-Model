@@ -189,15 +189,7 @@
          freshn  , & ! fresh water flux to ocean (kg/m^2/s)
          fsaltn  , & ! salt flux to ocean (kg/m^2/s)
          fhocnn      ! net heat flux to ocean (W/m^2) 
-
-      real (kind=dbl_kind), dimension (nilyr)  :: &
-         zqin_ice    , & ! ice layer enthalpy, zqin < 0 (J m-3)
-         zSin_ice    , &        ! internal ice layer salinities
-         zqin_snow    , & ! ice layer enthalpy, zqin < 0 (J m-3)
-         zSin_snow    
-      real (kind=dbl_kind), dimension (nslyr)  :: & 
-         zqsn_snow   , & ! snow layer enthalpy, zqsn < 0 (J m-3)
-         zqsn_ice    ! snow layer enthalpy, zqsn < 0 (J m-3)
+         
       ! diagnostic fields
       real (kind=dbl_kind), &
          intent(inout):: &
@@ -252,87 +244,30 @@
          flwoutn14,    & ! upward LW at surface band 14 (W m-2)
          flwoutn15,    & ! upward LW at surface band 15 (W m-2)
          flwoutn16,    & ! upward LW at surface band 16 (W m-2)
-         hilyr       , & ! ice layer thickness
-         hslyr_ice   , & ! low snow thickness to allow for ice area calculations 
+         hilyr       , & ! ice layer thicknessic 
          hslyr       , & ! snow layer thickness
          hin         , & ! ice thickness (m)
          hsn         , & ! snow thickness (m)
          hsn_new     , & ! thickness of new snow (m)
          worki       , & ! local work array
          works           ! local work array
-! local variables for snow/ice areas       
-      real (kind=dbl_kind) :: &
-         flwoutn1_ice,     & ! upward LW at surface band 1 (W m-2)
-         flwoutn2_ice,     & ! upward LW at surface band 2 (W m-2)
-         flwoutn3_ice,     & ! upward LW at surface band 3 (W m-2)
-         flwoutn4_ice,     & ! upward LW at surface band 4 (W m-2)
-         flwoutn5_ice,     & ! upward LW at surface band 5 (W m-2)
-         flwoutn6_ice,     & ! upward LW at surface band 6 (W m-2)
-         flwoutn7_ice,     & ! upward LW at surface band 7 (W m-2)
-         flwoutn8_ice,     & ! upward LW at surface band 8 (W m-2)
-         flwoutn9_ice,     & ! upward LW at surface band 9 (W m-2)
-         flwoutn10_ice,    & ! upward LW at surface band 10 (W m-2)
-         flwoutn11_ice,    & ! upward LW at surface band 11 (W m-2)
-         flwoutn12_ice,    & ! upward LW at surface band 12 (W m-2)
-         flwoutn13_ice,    & ! upward LW at surface band 13 (W m-2)
-         flwoutn14_ice,    & ! upward LW at surface band 14 (W m-2)
-         flwoutn15_ice,    & ! upward LW at surface band 15 (W m-2)
-         flwoutn16_ice,    & ! upward LW at surface band 16 (W m-2)
-         flwoutn_ice,      &
-         fsensn_ice   , & ! sensible heat flux (W/m^2) 
-         flatn_ice    , & ! latent heat flux   (W/m^2) 
-         fsurfn_ice   , & ! net flux to top surface, excluding fcondtopn
-         fcondtopn_ice, &
-         flwoutn1_snow,     & ! upward LW at surface band 1 (W m-2)
-         flwoutn2_snow,     & ! upward LW at surface band 2 (W m-2)
-         flwoutn3_snow,     & ! upward LW at surface band 3 (W m-2)
-         flwoutn4_snow,     & ! upward LW at surface band 4 (W m-2)
-         flwoutn5_snow,     & ! upward LW at surface band 5 (W m-2)
-         flwoutn6_snow,     & ! upward LW at surface band 6 (W m-2)
-         flwoutn7_snow,     & ! upward LW at surface band 7 (W m-2)
-         flwoutn8_snow,     & ! upward LW at surface band 8 (W m-2)
-         flwoutn9_snow,     & ! upward LW at surface band 9 (W m-2)
-         flwoutn10_snow,    & ! upward LW at surface band 10 (W m-2)
-         flwoutn11_snow,    & ! upward LW at surface band 11 (W m-2)
-         flwoutn12_snow,    & ! upward LW at surface band 12 (W m-2)
-         flwoutn13_snow,    & ! upward LW at surface band 13 (W m-2)
-         flwoutn14_snow,    & ! upward LW at surface band 14 (W m-2)
-         flwoutn15_snow,    & ! upward LW at surface band 15 (W m-2)
-         flwoutn16_snow,    & ! upward LW at surface band 16 (W m-2)
-         flwoutn_snow,      &
-         fsensn_snow   , & ! sensible heat flux (W/m^2) 
-         flatn_snow    , & ! latent heat flux   (W/m^2) 
-         fsurfn_snow   , & ! net flux to top surface, excluding fcondtopn
-         fcondtopn_snow, &
-         snoice_ice,  &
-         snoice_snow, & 
-         Tsf_ice, &
-         Tsf_snow
-         
+
       real (kind=dbl_kind), dimension (nilyr) :: &
-         zTin, &            ! internal ice layer temperatures
-         zTin_ice, &
-         zTin_snow
+         zTin          ! internal ice layer temperatures
+         
       real (kind=dbl_kind), dimension (nslyr) :: &
-        zTsn, &            ! internal snow layer temperatures
-        zTsn_ice, &
-        zTsn_snow
+        zTsn           ! internal snow layer temperatures
 ! other 2D flux and energy variables
 
       real (kind=dbl_kind) :: &
          fcondbot    , & ! downward cond flux at bottom surface (W m-2)
          einit       , & ! initial energy of melting (J m-2)
-         fcondbot_ice    , & ! downward cond flux at bottom surface (W m-2)
-         fcondbot_snow    , & ! downward cond flux at bottom surface (W m-2)
-         einit_ice       , & ! initial energy of melting (J m-2)
-         einit_snow       , & ! initial energy of melting (J m-2)
          efinal      , & ! final energy of melting (J m-2)
          einter          ! intermediate energy
 
       real (kind=dbl_kind) :: &
-         fadvocn, & ! advective heat flux to ocean
-         fadvocn_ice, &
-         fadvocn_snow
+         fadvocn! advective heat flux to ocean
+  
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
@@ -345,13 +280,6 @@
       fsaltn  = c0
       fhocnn  = c0
       fadvocn = c0
-      
-      flwoutn_ice = c0
-      fadvocn_ice = c0
-      
-      flwoutn_snow = c0
-      fadvocn_snow = c0
- 
       meltt   = c0
       meltb   = c0
       melts   = c0
@@ -359,8 +287,7 @@
       snoice  = c0
       dsnow   = c0
       meltsliq= c0    
-      snoice_snow = c0
-      snoice_ice =c0
+
 
 
       if (calc_Tsfc) then
@@ -369,13 +296,6 @@
          fsurfn    = c0
          fcondtopn = c0
          
-         flatn_ice     = c0
-         fsurfn_ice    = c0
-         fcondtopn_ice = c0
-         
-         flatn_snow     = c0
-         fsurfn_snow    = c0
-         fcondtopn_snow = c0
       endif
 
       !-----------------------------------------------------------------
@@ -394,24 +314,12 @@
                                   l_stop,   stop_label)
 
       if (l_stop) return
-      hslyr_ice = 1.0e-20_dbl_kind
+
       ! Save initial ice and snow thickness (for fresh and fsalt)
       worki = hin
       works = hsn
       
-      zTin_ice = zTin
-      zTsn_ice = zTsn
-      zqin_ice = zqin
-      zqsn_ice = zqsn
-      zSin_ice = zSin
-      einit_ice = einit
-      
-      zTin_snow = zTin
-      zTsn_snow = zTsn
-      zqin_snow = zqin
-      zqsn_snow = zqsn
-      zSin_snow = zSin
-      einit_snow = einit
+
       
       !-----------------------------------------------------------------
       ! Compute new surface temperature and internal ice and snow
