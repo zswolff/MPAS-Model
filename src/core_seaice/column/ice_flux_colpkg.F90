@@ -219,15 +219,21 @@
       if (longwave == 'rrtmg' .or. longwave== 'rrtmgp') then           
           if (hslyr>hs_min) then      
             flwdrem_old =(c1-emissivity)*flw
-            l_stop = flwdrem_snow - flwdrem_old > 1e-2_dbl_kind .or. flwdrem_snow - flwdrem_old  < -1e-2_dbl_kind
-            if (l_stop) then
-               write(warning, *) 'Thermo Error: re-emitted incoming snow', flwdrem_snow - flwdrem_old 
-               call add_warning(warning)
+            !l_stop = flwdrem_snow - flwdrem_old > 1e-2_dbl_kind .or. flwdrem_snow - flwdrem_old  < -1e-2_dbl_kind
+            
+            !if (l_stop) then
+            !   write(warning, *) 'Thermo Error: re-emitted incoming snow', flwdrem_snow - flwdrem_old 
+            !  call add_warning(warning)
           
-            endif      
-            flwout = flwout + (((c1-apeffn)*(flwoutn-flwdrem_snow))+(apeffn*(Pond_flux)))*aicen
+            !endif      
+            !flwout = flwout + (((c1-apeffn)*(flwoutn-flwdrem_snow))+(apeffn*(Pond_flux)))*aicen
+            !flwout = flwout + (flwoutn-flwdrem_snow)*aicen
+            
+            !flwout = flwout + ((c1-apeffn)*(flwoutn-flwdrem_snow)+(apeffn*Pond_flux))*aicen
+            flwout = flwout + ((flwoutn*(c1-apeffn))+(apeffn*Pond_flux)-flwdrem_snow)*aicen
           else
-            flwout = flwout + (((c1-apeffn)*(flwoutn-flwdrem_ice))+(apeffn*(Pond_flux)))*aicen
+            !flwout = flwout + (((c1-apeffn)*(flwoutn-flwdrem_ice))+(apeffn*(Pond_flux)))*aicen
+            flwout = flwout + ((flwoutn*(c1-apeffn))+(apeffn*Pond_flux)-flwdrem_ice)*aicen
          endif
       else 
           flwout = flwout+(flwoutn-(c1-emissivity)*flw)*aicen 

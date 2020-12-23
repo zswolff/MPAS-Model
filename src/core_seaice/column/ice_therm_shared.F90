@@ -874,17 +874,17 @@
       flwdabs_old =  emissivity*flw
       flwoutn_old = -emissivity*stefan_boltzmann*TsfK**4
       l_stop = flwoutn-flwoutn_old > 1e-2_dbl_kind .or. flwoutn- flwoutn_old < -1e-2_dbl_kind
-      if (l_stop) then
-         write(warning, *) 'Thermo Error: Outgoing disagreement', flwoutn- flwoutn_old, TsfK
-         call add_warning(warning)
+      !if (l_stop) then
+      !   write(warning, *) 'Thermo Error: Outgoing disagreement', flwoutn- flwoutn_old, TsfK
+      !   call add_warning(warning)
          !return 
-      endif
-      l_stop = flwdabs-flwdabs_old > 1e-2_dbl_kind .or. flwdabs-flwdabs_old < -1e-2_dbl_kind
-      if (l_stop) then
-         write(warning, *) 'Thermo Error: Incoming disagreement abs', flwdabs-flwdabs_old 
-         call add_warning(warning)
-         !return 
-      endif
+      !endif
+      !l_stop = flwdabs-flwdabs_old > 1e-2_dbl_kind .or. flwdabs-flwdabs_old < -1e-2_dbl_kind
+      !if (l_stop) then
+      !   write(warning, *) 'Thermo Error: Incoming disagreement abs', flwdabs-flwdabs_old 
+      !   call add_warning(warning)
+      !   !return 
+      !endif
           
       ! downward latent and sensible heat fluxes
       fsensn = shcoef * (potT - TsfK)
@@ -1045,11 +1045,11 @@
           
           dflwoutn_dTsf_old = -emissivity * stefan_boltzmann * c4*TsfK**3
           l_stop = dflwoutn_dTsf - dflwoutn_dTsf_old > 1e-2_dbl_kind .or. dflwoutn_dTsf - dflwoutn_dTsf_old  < -1e-2_dbl_kind
-          if (l_stop) then
-             write(warning, *) 'Thermo Error: outgoing derivative', dflwoutn_dTsf - dflwoutn_dTsf_old 
-            call add_warning(warning)
+          !if (l_stop) then
+          !   write(warning, *) 'Thermo Error: outgoing derivative', dflwoutn_dTsf - dflwoutn_dTsf_old 
+          !  call add_warning(warning)
           
-          endif  
+          !endif  
           
       else if (longwave=='rrtmgp') then 
               if (l_snow) then
@@ -1094,11 +1094,11 @@
           dflwoutn_dTsf = emiss_weight*stefan_boltzmann*c4*TsfK**3 
           dflwoutn_dTsf_old = -emissivity * stefan_boltzmann * c4*TsfK**3
           l_stop = dflwoutn_dTsf - dflwoutn_dTsf_old > 1e-2_dbl_kind .or. dflwoutn_dTsf - dflwoutn_dTsf_old  < -1e-2_dbl_kind
-          if (l_stop) then
-             write(warning, *) 'Thermo Error: outgoing derivative', dflwoutn_dTsf - dflwoutn_dTsf_old 
-            call add_warning(warning)
+          !if (l_stop) then
+          !   write(warning, *) 'Thermo Error: outgoing derivative', dflwoutn_dTsf - dflwoutn_dTsf_old 
+          !  call add_warning(warning)
           
-          endif  
+         ! endif  
       else 
           dflwoutn_dTsf = -emissivity * stefan_boltzmann * c4*TsfK**3
       endif 

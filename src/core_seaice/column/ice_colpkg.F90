@@ -2268,11 +2268,11 @@
                  flwnew = flw1+flw2+flw3+flw4+flw5+flw6+flw7+flw8+&
                          flw9+flw10+flw11+flw12+flw13+flw14+flw15+flw16
                          
-                 if (flwnew-flw > 1e-10_dbl_kind .or. flwnew-flw <-1e-10_dbl_kind) then
-                     write(warning, *) 'Thermo Error: incoming disagreement calc', flwnew-flw 
-                     call add_warning(warning)
-                     return 
-                 endif ! flw check
+                 !if (flwnew-flw > 1e-10_dbl_kind .or. flwnew-flw <-1e-10_dbl_kind) then
+                 !    write(warning, *) 'Thermo Error: incoming disagreement calc', flwnew-flw 
+                 !    call add_warning(warning)
+                 !    return 
+                 !endif ! flw check
                  
                  call longwave_re_emitted_flux(flw1, flw2,  &
                                         flw3, flw4,  &
@@ -2501,10 +2501,10 @@
                                        fhocn,      fswthru,      &
                                        melttn (n), meltsn(n),    &
                                        meltbn (n), congeln(n),   &
-                                       snoicen(n),               &
+                                       snoicen(n), meltsliqn(n), &
                                        meltt,      melts,        &
                                        meltb,      congel,       &
-                                       snoice,                   &
+                                       snoice,     meltsliq,     &
                                        apeffn(n),                &
                                        vsnon(n),                 &
                                        flwdrem_ice,              &
