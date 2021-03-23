@@ -677,7 +677,9 @@ contains
          bareIceAlbedoCell, &
          snowAlbedoCell, &
          pondAlbedoCell, &
-         effectivePondAreaCell, &
+         effectivePondAreaCell,  &
+         snowFractionCell,       &
+         iceFractionCell,        &
          shortwaveScalingFactor, &
          shortwaveVisibleDirectDown, &
          shortwaveVisibleDiffuseDown, &
@@ -692,7 +694,10 @@ contains
          bareIceAlbedoCategory, &
          snowAlbedoCategory, &
          pondAlbedoCategory, &
-         effectivePondAreaCategory
+         effectivePondAreaCategory, &
+         snowFractionCategory, &
+         iceFractionCategory
+         
 
     real(kind=RKIND), dimension(:,:,:), pointer :: &
          iceAreaCategory
@@ -778,6 +783,12 @@ contains
 
        call MPAS_pool_get_array(shortwave, "effectivePondAreaCell", effectivePondAreaCell)
        call MPAS_pool_get_array(shortwave, "effectivePondAreaCategory", effectivePondAreaCategory)
+       
+       call MPAS_pool_get_array(shortwave, "snowFractionCell", snowFractionCell)
+       call MPAS_pool_get_array(shortwave, "snowFractionCategory", snowFractionCategory)
+       
+       call MPAS_pool_get_array(shortwave, "iceFractionCell", iceFractionCell)
+       call MPAS_pool_get_array(shortwave, "iceFractionCategory", iceFractionCategory)
 
        call MPAS_pool_get_array(shortwave, "shortwaveScalingFactor", shortwaveScalingFactor)
 
@@ -820,6 +831,11 @@ contains
 
                 effectivePondAreaCell(iCell) = effectivePondAreaCell(iCell) + &
                      effectivePondAreaCategory(iCategory,iCell) * iceAreaCategory(1,iCategory,iCell)
+                snowFractionCell(iCell) = snowFractionCell(iCell) + &
+                     snowFractionCategory(iCategory,iCell) * iceAreaCategory(1,iCategory,iCell)
+                iceFractionCell(iCell) = iceFractionCell(iCell) + &
+                     iceFractionCategory(iCategory,iCell) * iceAreaCategory(1,iCategory,iCell)    
+                
 
              endif
 
@@ -1375,6 +1391,9 @@ contains
          surfaceConductiveFlux, &
          absorbedShortwaveFlux, &
          longwaveUp, &
+         longwaveUpIce, &
+         longwaveUpSnow, &
+         longwaveUpPond, &
          longwaveDown, &
          solarZenithAngleCosine, &
          sensibleHeatFlux, &
@@ -1425,7 +1444,9 @@ contains
          snowThicknessChangeCategory, &
          snowMeltMassCategory, &
          snowRadiusInStandardRadiationSchemeCategory, &
-         effectivePondAreaCategory
+         effectivePondAreaCategory, &
+         snowFractionCategory, &
+         iceFractionCategory
          
     real(kind=RKIND), dimension(:,:,:), pointer :: &
          iceAreaCategory, &
@@ -1620,6 +1641,9 @@ contains
        call MPAS_pool_get_array(atmos_fluxes, "surfaceConductiveFlux", surfaceConductiveFlux)
        call MPAS_pool_get_array(atmos_fluxes, "surfaceConductiveFluxCategory", surfaceConductiveFluxCategory)
        call MPAS_pool_get_array(atmos_fluxes, "longwaveUp", longwaveUp)
+       call MPAS_pool_get_array(atmos_fluxes, "longwaveUpIce", longwaveUpIce)
+       call MPAS_pool_get_array(atmos_fluxes, "longwaveUpSnow", longwaveUpSnow)
+       call MPAS_pool_get_array(atmos_fluxes, "longwaveUpPond", longwaveUpPond)
        call MPAS_pool_get_array(atmos_fluxes, "sensibleHeatFlux", sensibleHeatFlux)
        call MPAS_pool_get_array(atmos_fluxes, "sensibleHeatFluxCategory", sensibleHeatFluxCategory)
        call MPAS_pool_get_array(atmos_fluxes, "latentHeatFlux", latentHeatFlux)
@@ -1640,6 +1664,8 @@ contains
        call MPAS_pool_get_array(shortwave, "absorbedShortwaveSnowLayer", absorbedShortwaveSnowLayer)
        call MPAS_pool_get_array(shortwave, "solarZenithAngleCosine", solarZenithAngleCosine)
        call MPAS_pool_get_array(shortwave,"effectivePondAreaCategory",effectivePondAreaCategory)
+       call MPAS_pool_get_array(shortwave, "snowFractionCategory", snowFractionCategory)
+       call MPAS_pool_get_array(shortwave, "iceFractionCategory", iceFractionCategory)
        
        call MPAS_pool_get_array(aerosols, "atmosAerosolFlux", atmosAerosolFlux)
        call MPAS_pool_get_array(aerosols, "oceanAerosolFlux", oceanAerosolFlux)
@@ -1808,6 +1834,9 @@ contains
                penetratingShortwaveFlux(:,iCell), &
                absorbedShortwaveFlux(iCell), &
                longwaveUp(iCell), &
+               longwaveUpIce(iCell), &
+               longwaveUpSnow(iCell), &
+               longwaveUpPond(iCell), &
                absorbedShortwaveSnowLayer(:,:,iCell), &
                absorbedShortwaveIceLayer(:,:,iCell), &
                longwaveDown(iCell), &
@@ -1851,7 +1880,9 @@ contains
                dayOfYear, &
                abortFlag, &
                abortMessage, &
-               effectivePondAreaCategory(:,iCell))
+               snowFractionCategory(:,iCell), &
+               effectivePondAreaCategory(:,iCell), &
+               iceFractionCategory(:,iCell))
           call column_write_warnings(abortFlag)
 
           ! cell-specific abort message
@@ -4359,6 +4390,8 @@ contains
          snowAlbedoCell, &
          pondAlbedoCell, &
          solarZenithAngleCosine, &
+         snowFractionCell, &
+         iceFractionCell, &
          effectivePondAreaCell, &
          shortwaveScalingFactor, &
          shortwaveVisibleDirectDown, &
@@ -4393,6 +4426,8 @@ contains
          snowAlbedoCategory, &
          pondAlbedoCategory, &
          effectivePondAreaCategory, &
+         snowFractionCategory, &
+         iceFractionCategory, &
          oceanBioFluxes, &
          oceanAlgaeFlux, &
          oceanDOCFlux, &
@@ -4491,10 +4526,16 @@ contains
        call MPAS_pool_get_array(shortwave, "bareIceAlbedoCategory", bareIceAlbedoCategory)
        call MPAS_pool_get_array(shortwave, "snowAlbedoCategory", snowAlbedoCategory)
        call MPAS_pool_get_array(shortwave, "pondAlbedoCategory", pondAlbedoCategory)
-
-       call MPAS_pool_get_array(shortwave, "effectivePondAreaCell", effectivePondAreaCell)
+       
+       call MPAS_pool_get_array(shortwave, "iceFractionCell", iceFractionCell)
+       call MPAS_pool_get_array(shortwave, "iceFractionCategory", iceFractionCategory)
+       
+       call MPAS_pool_get_array(shortwave, "snowFractionCell", snowFractionCell)
+       call MPAS_pool_get_array(shortwave, "snowFractionCategory", snowFractionCategory)
+       
+        call MPAS_pool_get_array(shortwave, "effectivePondAreaCell", effectivePondAreaCell)
        call MPAS_pool_get_array(shortwave, "effectivePondAreaCategory", effectivePondAreaCategory)
-
+       
        call MPAS_pool_get_array(shortwave, "shortwaveScalingFactor", shortwaveScalingFactor)
 
        call MPAS_pool_get_array(atmosCoupling, "shortwaveVisibleDirectDown", shortwaveVisibleDirectDown)
@@ -4568,9 +4609,11 @@ contains
           bareIceAlbedoCell(iCell) = 0.0_RKIND
           snowAlbedoCell(iCell)    = 0.0_RKIND
           pondAlbedoCell(iCell)    = 0.0_RKIND
-
+          
+          iceFractionCell(iCell) = 0.0_RKIND
+          snowFractionCell(iCell) = 0.0_RKIND
           effectivePondAreaCell(iCell) = 0.0_RKIND
-
+          
           do iCategory = 1, nCategories
 
              albedoVisibleDirectCell(iCell) = albedoVisibleDirectCell(iCell) + &
@@ -4596,7 +4639,10 @@ contains
 
              effectivePondAreaCell(iCell) = effectivePondAreaCell(iCell) + &
                   effectivePondAreaCategory(iCategory,iCell) * iceAreaCategory(1,iCategory,iCell)
-
+             snowFractionCell(iCell) = snowFractionCell(iCell) + &
+                  snowFractionCategory(iCategory,iCell) * iceAreaCategory(1,iCategory,iCell)
+             iceFractionCell(iCell) = iceFractionCell(iCell) + &
+                  iceFractionCategory(iCategory,iCell) * iceAreaCategory(1,iCategory,iCell)                  
           enddo ! iCategory
 
           !-------------------------------------------------------------------
@@ -4806,6 +4852,9 @@ contains
          latentHeatFlux, &
          absorbedShortwaveFlux, &
          longwaveUp, &
+         longwaveUpIce, &
+         longwaveUpSnow, &
+         longwaveUpPond, &
          evaporativeWaterFlux, &
          atmosReferenceHumidity2m, &
          atmosReferenceTemperature2m, &
@@ -4881,6 +4930,9 @@ contains
        call MPAS_pool_get_array(atmosFluxes, "latentHeatFlux", latentHeatFlux)
        call MPAS_pool_get_array(atmosFluxes, "evaporativeWaterFlux", evaporativeWaterFlux)
        call MPAS_pool_get_array(atmosFluxes, "longwaveUp", longwaveUp)
+       call MPAS_pool_get_array(atmosFluxes, "longwaveUpIce", longwaveUpIce)
+       call MPAS_pool_get_array(atmosFluxes, "longwaveUpSnow", longwaveUpSnow)
+       call MPAS_pool_get_array(atmosFluxes, "longwaveUpPond", longwaveUpPond)
 
        call MPAS_pool_get_array(shortwave, "absorbedShortwaveFlux", absorbedShortwaveFlux)
        call MPAS_pool_get_array(shortwave, "albedoVisibleDirectCell", albedoVisibleDirectCell)
@@ -4936,6 +4988,9 @@ contains
              latentHeatFlux(iCell)              = latentHeatFlux(iCell)              * iceAreaInverse
              absorbedShortwaveFlux(iCell)       = absorbedShortwaveFlux(iCell)       * iceAreaInverse
              longwaveUp(iCell)                  = longwaveUp(iCell)                  * iceAreaInverse
+             longwaveUpIce(iCell)               = longwaveUpIce(iCell)               * iceAreaInverse
+             longwaveUpSnow(iCell)              = longwaveUpSnow(iCell)              * iceAreaInverse
+             longwaveUpPond(iCell)              = longwaveUpPond(iCell)              * iceAreaInverse
              evaporativeWaterFlux(iCell)        = evaporativeWaterFlux(iCell)        * iceAreaInverse
              atmosReferenceTemperature2m(iCell) = atmosReferenceTemperature2m(iCell) * iceAreaInverse
              atmosReferenceHumidity2m(iCell)    = atmosReferenceHumidity2m(iCell)    * iceAreaInverse
@@ -4988,6 +5043,9 @@ contains
              absorbedShortwaveFlux(iCell)       = 0.0_RKIND
              longwaveUp(iCell)                  = &
                   -seaiceStefanBoltzmann * (seaFreezingTemperature(iCell) + seaiceFreshWaterFreezingPoint)**4
+             longwaveUpIce(icell)               = 0.0_RKIND
+             longwaveUpSnow(icell)              = 0.0_RKIND
+             longwaveUpPond(icell)              = 0.0_RKIND
              evaporativeWaterFlux(iCell)        = 0.0_RKIND
              atmosReferenceTemperature2m(iCell) = airTemperature(iCell)
              atmosReferenceHumidity2m(iCell)    = airSpecificHumidity(iCell)
@@ -8815,6 +8873,7 @@ contains
     logical, pointer :: &
          config_calc_surface_stresses, &
          config_calc_surface_temperature, &
+         config_use_subgridscale, &
          config_use_form_drag, &
          config_use_level_ice, &
          config_use_cesm_meltponds, &
@@ -8857,6 +8916,7 @@ contains
 
     call MPAS_pool_get_config(domain % configs, "config_thermodynamics_type", config_thermodynamics_type)
     call MPAS_pool_get_config(domain % configs, "config_longwave_type", config_longwave_type)
+    
     call MPAS_pool_get_config(domain % configs, "config_heat_conductivity_type", config_heat_conductivity_type)
     call MPAS_pool_get_config(domain % configs, "config_shortwave_type", config_shortwave_type)
     call MPAS_pool_get_config(domain % configs, "config_albedo_type", config_albedo_type)
@@ -8869,6 +8929,7 @@ contains
     call MPAS_pool_get_config(domain % configs, "config_pond_refreezing_type", config_pond_refreezing_type)
     call MPAS_pool_get_config(domain % configs, "config_calc_surface_stresses", config_calc_surface_stresses)
     call MPAS_pool_get_config(domain % configs, "config_calc_surface_temperature", config_calc_surface_temperature)
+    call MPAS_pool_get_config(domain % configs, "config_use_subgridscale", config_use_subgridscale)
     call MPAS_pool_get_config(domain % configs, "config_max_meltwater_retained_fraction", config_max_meltwater_retained_fraction)
     call MPAS_pool_get_config(domain % configs, "config_min_meltwater_retained_fraction", config_min_meltwater_retained_fraction)
     call MPAS_pool_get_config(domain % configs, "config_snow_to_ice_transition_depth", config_snow_to_ice_transition_depth)
@@ -9069,7 +9130,17 @@ contains
             'check_column_package_configs: config_max_meltwater_retained_fraction out of bounds', &
             messageType=MPAS_LOG_CRIT)
     endif
-
+    ! check subgridscale with longwave type and mushy 
+    if (config_use_subgridscale .and. config_thermodynamics_type /= "mushy") then
+       call mpas_log_write(&
+            "check_column_package_configs: for use_subgridscale =true, config_thermodynamics_type = 'mushy'", &
+            messageType=MPAS_LOG_CRIT)
+    endif
+    if (config_use_subgridscale .and. .not.(config_longwave_type == "rrtmg" .or. config_longwave_type == "rrtmgp")) then
+       call mpas_log_write(&
+            "check_column_package_configs: for use_subgridscale =true, config_longwave_type= rrtmg or rrtmgp", &
+            messageType=MPAS_LOG_CRIT)
+    endif
     ! check not mushy physics and dont calculate surface temperature
     if (trim(config_thermodynamics_type) == "mushy" .and. .not. config_calc_surface_temperature) then
        call mpas_log_write(&
@@ -9795,6 +9866,7 @@ contains
 
     logical, pointer :: &
          config_calc_surface_temperature, &
+         config_use_subgridscale, &
          config_use_form_drag, &
          config_use_high_frequency_coupling, &
          config_use_ocean_mixed_layer, &
@@ -9975,6 +10047,7 @@ contains
     call MPAS_pool_get_config(domain % configs, "config_heat_conductivity_type", config_heat_conductivity_type)
     call MPAS_pool_get_config(domain % configs, "config_ocean_heat_transfer_type", config_ocean_heat_transfer_type)
     call MPAS_pool_get_config(domain % configs, "config_calc_surface_temperature", config_calc_surface_temperature)
+    call MPAS_pool_get_config(domain % configs, "config_use_subgridscale", config_use_subgridscale)
     call MPAS_pool_get_config(domain % configs, "config_min_friction_velocity", config_min_friction_velocity)
     call MPAS_pool_get_config(domain % configs, "config_rapid_mode_channel_radius", config_rapid_mode_channel_radius)
     call MPAS_pool_get_config(domain % configs, "config_rapid_model_critical_Ra", config_rapid_model_critical_Ra)
@@ -10177,6 +10250,7 @@ contains
          config_heat_conductivity_type, &
          config_ocean_heat_transfer_type, &
          config_calc_surface_temperature, &
+         config_use_subgridscale, &
          config_min_friction_velocity, &
          config_rapid_mode_channel_radius, &
          config_rapid_model_critical_Ra, &
@@ -12138,6 +12212,9 @@ contains
          latentHeatFlux, &
          evaporativeWaterFlux, &
          longwaveUp, &
+         longwaveUpIce, &
+         longwaveUpSnow, &
+         longwaveUpPond, &
          absorbedShortwaveFlux, &
          atmosReferenceTemperature2m, &
          atmosReferenceHumidity2m, &
@@ -12177,6 +12254,9 @@ contains
           call MPAS_pool_get_array(atmosFluxesPool, "latentHeatFlux", latentHeatFlux)
           call MPAS_pool_get_array(atmosFluxesPool, "evaporativeWaterFlux", evaporativeWaterFlux)
           call MPAS_pool_get_array(atmosFluxesPool, "longwaveUp", longwaveUp)
+          call MPAS_pool_get_array(atmosFluxesPool, "longwaveUpIce", longwaveUpIce)
+          call MPAS_pool_get_array(atmosFluxesPool, "longwaveUpSnow", longwaveUpSnow)
+          call MPAS_pool_get_array(atmosFluxesPool, "longwaveUpPond", longwaveUpPond)
 
           call MPAS_pool_get_array(shortwavePool, "absorbedShortwaveFlux", absorbedShortwaveFlux)
 
@@ -12186,6 +12266,9 @@ contains
           latentHeatFlux(:)        = 0.0_RKIND
           evaporativeWaterFlux(:)  = 0.0_RKIND
           longwaveUp(:)            = 0.0_RKIND
+          longwaveUpIce(:)         = 0.0_RKIND
+          longwaveUpSnow(:)        = 0.0_RKIND
+          longwaveUpPond(:)        = 0.0_RKIND
 
        endif ! config_use_column_package
 

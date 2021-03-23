@@ -69,7 +69,8 @@ contains
                                           flwoutn9, flwoutn10, &
                                           flwoutn11, flwoutn12, &
                                           flwoutn13, flwoutn14, &
-                                          flwoutn15, flwoutn16)
+                                          flwoutn15, flwoutn16, & 
+                                          flwoutn_ice, flwoutn_snow)
 
     ! solve the enthalpy and bulk salinity of the ice for a single column
 
@@ -159,6 +160,9 @@ contains
          flwoutn14,    & ! upward LW at surface band 14 (W m-2)
          flwoutn15,    & ! upward LW at surface band 15 (W m-2)
          flwoutn16       ! upward LW at surface band 16 (W m-2)
+   real (kind=dbl_kind), intent(out),optional:: &      
+         flwoutn_ice, &
+         flwoutn_snow
     real (kind=dbl_kind), intent(out):: &
          fcondbot    , & ! downward cond flux at bottom surface (W m-2)
          fadvheat    , & ! flow of heat to ocean due to advection (W m-2)
@@ -218,12 +222,14 @@ contains
          k               ! ice/snow layer index
 
     logical(kind=log_kind) :: &
-         lsnow           ! snow presence: T: has snow, F: no snow
+         lsnow          ! snow presence: T: has snow, F: no snow
+         
 
     character(len=char_len_long) :: &
          warning         ! warning message
     
     lstop = .false.
+    !use_fraction_test = .true.
     fadvheat   = c0
     snoice     = c0
 
@@ -321,7 +327,9 @@ contains
                                   flwoutn9,    flwoutn10,  & 
                                   flwoutn11,   flwoutn12,  & 
                                   flwoutn13,   flwoutn14,  & 
-                                  flwoutn15,   flwoutn16)
+                                  flwoutn15,   flwoutn16, &
+                                  !use_fraction_test,       &
+                                  flwoutn_ice, flwoutn_snow)
 
        if (lstop) then
           write(warning,*) "temperature_changes_salinity: Picard solver non-convergence (snow)"
@@ -383,7 +391,9 @@ contains
                                     flwoutn9,    flwoutn10,  & 
                                     flwoutn11,   flwoutn12,  & 
                                     flwoutn13,   flwoutn14,  & 
-                                    flwoutn15,   flwoutn16)
+                                    flwoutn15,   flwoutn16, &
+                                    !use_fraction_test,       &
+                                    flwoutn_ice, flwoutn_snow)
 
        if (lstop) then
           write(warning,*) "temperature_changes_salinity: Picard solver non-convergence (no snow)"
@@ -462,7 +472,9 @@ contains
                                    flwoutn9,    flwoutn10,  & 
                                    flwoutn11,   flwoutn12,  & 
                                    flwoutn13,   flwoutn14,  & 
-                                   flwoutn15,   flwoutn16)
+                                   flwoutn15,   flwoutn16, &
+                                   !use_fraction_test,       &
+                                   flwoutn_ice, flwoutn_snow)
 
     ! solve the vertical temperature and salt change for case with snow
     ! 1) determine what type of surface condition existed previously - cold or melting
@@ -502,7 +514,9 @@ contains
          flwoutn13,    & ! upward LW at surface band 13 (W m-2)
          flwoutn14,    & ! upward LW at surface band 14 (W m-2)
          flwoutn15,    & ! upward LW at surface band 15 (W m-2)
-         flwoutn16       ! upward LW at surface band 16 (W m-2)
+         flwoutn16,    &   ! upward LW at surface band 16 (W m-2)
+         flwoutn_ice, &
+         flwoutn_snow
     real(kind=dbl_kind), intent(in) :: &
          Tsf0            ! snow surface temperature (C) at beginning of timestep
 
@@ -568,7 +582,8 @@ contains
          flw14       , & ! incoming longwave radiation band 14 (W/m^2)
          flw15       , & ! incoming longwave radiation band 15 (W/m^2)
          flw16           ! incoming longwave radiation band 16 (W/m^2)
-
+    !logical(kind=log_kind), intent(in) :: &
+         !use_fraction_test
     logical(kind=log_kind), intent(inout) :: &
          lstop           ! solver failure flag
 
@@ -625,7 +640,9 @@ contains
                           flwoutn9, flwoutn10,& 
                           flwoutn11, flwoutn12,& 
                           flwoutn13, flwoutn14,& 
-                          flwoutn15, flwoutn16 )
+                          flwoutn15, flwoutn16,& 
+                          !use_fraction_test,       &
+                          flwoutn_ice, flwoutn_snow)
 
        ! halt if solver failed
        if (lstop) return
@@ -687,7 +704,9 @@ contains
                              flwoutn9, flwoutn10,& 
                              flwoutn11, flwoutn12,& 
                              flwoutn13, flwoutn14,& 
-                             flwoutn15, flwoutn16)
+                             flwoutn15, flwoutn16, &
+                             !use_fraction_test,       &
+                             flwoutn_ice, flwoutn_snow)
 
           ! halt if solver failed
           if (lstop) return
@@ -756,7 +775,9 @@ contains
                           flwoutn9, flwoutn10,& 
                           flwoutn11, flwoutn12,& 
                           flwoutn13, flwoutn14,& 
-                          flwoutn15, flwoutn16)
+                          flwoutn15, flwoutn16, &
+                          !use_fraction_test,       &
+                          flwoutn_ice, flwoutn_snow)
 
        ! halt if solver failed
        if (lstop) return
@@ -821,7 +842,9 @@ contains
                              flwoutn9, flwoutn10,& 
                              flwoutn11, flwoutn12,& 
                              flwoutn13, flwoutn14,& 
-                             flwoutn15, flwoutn16)
+                             flwoutn15, flwoutn16, &
+                             !use_fraction_test,     &
+                             flwoutn_ice, flwoutn_snow)
 
           ! halt if solver failed
           if (lstop) return
@@ -890,7 +913,9 @@ contains
                                      flwoutn9,    flwoutn10,  & 
                                      flwoutn11,   flwoutn12,  & 
                                      flwoutn13,   flwoutn14,  & 
-                                     flwoutn15,   flwoutn16 )
+                                     flwoutn15,   flwoutn16,  & 
+                                     !use_fraction_test,       &
+                                     flwoutn_ice, flwoutn_snow)
     
     ! solve the vertical temperature and salt change for case with no snow
     ! 1) determine what type of surface condition existed previously - cold or melting
@@ -933,7 +958,11 @@ contains
          flwoutn13,    & ! upward LW at surface band 13 (W m-2)
          flwoutn14,    & ! upward LW at surface band 14 (W m-2)
          flwoutn15,    & ! upward LW at surface band 15 (W m-2)
-         flwoutn16       ! upward LW at surface band 16 (W m-2)
+         flwoutn16,    &   ! upward LW at surface band 16 (W m-2)
+         flwoutn_ice, &
+         flwoutn_snow
+
+       
     real(kind=dbl_kind), intent(in) :: &
          Tsf0            ! ice surface temperature (C) at beginning of timestep
 
@@ -999,11 +1028,14 @@ contains
          flw14       , & ! incoming longwave radiation band 14 (W/m^2)
          flw15       , & ! incoming longwave radiation band 15 (W/m^2)
          flw16          ! incoming longwave radiation band 16 (W/m^2
+    !logical(kind=log_kind), intent(in) :: &
+         !use_fraction_test
     logical, intent(inout) :: &
          lstop           ! solver failure flag
 
     character(len=*), intent(out) :: &
          stop_label      ! fatal error message
+         
 
     real(kind=dbl_kind) :: &
          Tmlt        , & ! upper ice layer melting temperature (C)
@@ -1058,7 +1090,9 @@ contains
                           flwoutn9, flwoutn10,& 
                           flwoutn11, flwoutn12,& 
                           flwoutn13, flwoutn14,& 
-                          flwoutn15, flwoutn16)
+                          flwoutn15, flwoutn16,&
+                          !use_fraction_test, &
+                          flwoutn_ice, flwoutn_snow)
        ! halt if solver failed
        if (lstop) return
 
@@ -1117,7 +1151,9 @@ contains
                              flwoutn9, flwoutn10,& 
                              flwoutn11, flwoutn12,& 
                              flwoutn13, flwoutn14,& 
-                             flwoutn15, flwoutn16)
+                             flwoutn15, flwoutn16, &
+                             !use_fraction_test, &
+                             flwoutn_ice, flwoutn_snow)
 
           ! halt if solver failed
           if (lstop) return
@@ -1186,7 +1222,10 @@ contains
                           flwoutn9, flwoutn10,& 
                           flwoutn11, flwoutn12,& 
                           flwoutn13, flwoutn14,& 
-                          flwoutn15, flwoutn16 )
+                          flwoutn15, flwoutn16, &
+                          !use_fraction_test, &
+                          flwoutn_ice, flwoutn_snow)
+                          
                           
 
        ! halt if solver failed
@@ -1251,8 +1290,9 @@ contains
                              flwoutn9, flwoutn10,& 
                              flwoutn11, flwoutn12,& 
                              flwoutn13, flwoutn14,& 
-                             flwoutn15, flwoutn16)
-
+                             flwoutn15, flwoutn16, &
+                             !use_fraction_test, &
+                             flwoutn_ice, flwoutn_snow)                             
           ! halt if solver failed
           if (lstop) return
 
@@ -1468,10 +1508,13 @@ contains
                            flwoutn9, flwoutn10,& 
                            flwoutn11, flwoutn12,& 
                            flwoutn13, flwoutn14,& 
-                           flwoutn15, flwoutn16)
+                           flwoutn15, flwoutn16, &
+                           !use_fraction_test, &
+                           flwoutn_ice, flwoutn_snow)
 
-    use ice_therm_shared, only: surface_heat_flux, dsurface_heat_flux_dTsf
-
+    use ice_therm_shared, only: surface_heat_flux, dsurface_heat_flux_dTsf, longwave_emitted
+    use ice_constants_colpkg, only: lw_nbd
+    use ice_colpkg_shared, only: use_subgridscale
     integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
          nslyr     ! number of snow layers
@@ -1529,7 +1572,10 @@ contains
          flwoutn13,    & ! upward LW at surface band 13 (W m-2)
          flwoutn14,    & ! upward LW at surface band 14 (W m-2)
          flwoutn15,    & ! upward LW at surface band 15 (W m-2)
-         flwoutn16       ! upward LW at surface band 16 (W m-2)
+         flwoutn16,    &   ! upward LW at surface band 16 (W m-2)   
+         flwoutn_ice, &
+         flwoutn_snow
+
 
     real(kind=dbl_kind), intent(in) :: &
          dt            , & ! time step (s)
@@ -1566,9 +1612,11 @@ contains
          flw14       , & ! incoming longwave radiation band 14 (W/m^2)
          flw15       , & ! incoming longwave radiation band 15 (W/m^2)
          flw16           ! incoming longwave radiation band 16 (W/m^2)
+    !logical(kind=log_kind), intent(in) :: &
+         !use_fraction_test
     logical(kind=log_kind), intent(inout) :: &
-         lstop             ! solver failure flag 
-
+         lstop         ! solver failure flag 
+         
     character(len=*), intent(out) :: &
          stop_label        ! fatal error message
 
@@ -1598,12 +1646,17 @@ contains
          Tsf_prev      , & ! snow surface temperature at previous iteration
          einit         , & ! initial total energy (J)
          fadvheat_nit      ! heat to ocean due to advection (W m-2) during iteration
-
+    
+    real (kind=dbl_kind), dimension(lw_nbd) :: & 
+         flwoutn_bnds,     &
+         flwoutn_ice_bnds, &
+         flwoutn_snow_bnds
     logical :: &
          lconverged        ! has Picard solver converged?
 
     integer :: &
-         nit               ! Picard iteration count
+         nit, &               ! Picard iteration count
+         k
 
     integer, parameter :: &
          nit_max = 100     ! maximum number of Picard iterations
@@ -1660,7 +1713,8 @@ contains
                               flwoutn9, flwoutn10,& 
                               flwoutn11, flwoutn12,& 
                               flwoutn13, flwoutn14,& 
-                              flwoutn15, flwoutn16)
+                              flwoutn15, flwoutn16, &
+                              flwoutn_bnds)
 
        ! derivative of heat flux with respect to surface temperature
        call dsurface_heat_flux_dTsf(Tsf,          fswsfc,        &
@@ -1770,8 +1824,23 @@ contains
                            flwoutn9, flwoutn10,& 
                            flwoutn11, flwoutn12,& 
                            flwoutn13, flwoutn14,& 
-                           flwoutn15, flwoutn16)
-
+                           flwoutn15, flwoutn16,&
+                           flwoutn_bnds)
+    if (use_subgridscale) then 
+       call longwave_emitted(flwoutn_bnds,&
+                             'ice',&
+                             flwoutn_ice_bnds)
+        
+        call longwave_emitted(flwoutn_bnds,&
+                              'snow', &  
+                              flwoutn_snow_bnds)
+        !do k =1,16 
+        !    flwoutn_snow = flwoutn_snow + flwoutn_snow_bnds(k)
+        !    flwoutn_ice = flwoutn_ice + flwoutn_ice_bnds(k)
+        !enddo
+        flwoutn_ice =  SUM(flwoutn_ice_bnds)
+        flwoutn_snow = SUM(flwoutn_snow_bnds)
+    endif
     ! if not converged
     if (.not. lconverged) then
 

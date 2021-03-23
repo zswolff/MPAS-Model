@@ -1747,7 +1747,10 @@ contains
          seaSurfaceTemperature, &
          windSpeed, &
          airDragCoefficient, &
-         longwaveUp
+         longwaveUp, &
+         longwaveUpIce, &
+         longwaveUpSnow, &
+         longwaveUpPond
 
     real(kind=RKIND), dimension(:), pointer :: &
          oceanNitrateConc, &
@@ -1849,8 +1852,13 @@ contains
           call MPAS_pool_get_subpool(block % structs, "atmos_fluxes", atmosFluxes)
           call MPAS_pool_get_array(atmosFluxes, "longwaveUp", longwaveUp)
           longwaveUp = -seaiceStefanBoltzmann * seaiceFreshWaterFreezingPoint**4
-
+          call MPAS_pool_get_array(atmosFluxes, "longwaveUpIce", longwaveUpIce)
+          call MPAS_pool_get_array(atmosFluxes, "longwaveUpSnow", longwaveUpSnow)
+          call MPAS_pool_get_array(atmosFluxes, "longwaveUpPond", longwaveUpPond)
           call MPAS_pool_get_subpool(block % structs, "drag", drag)
+          longwaveUpIce  = 0.0_RKIND
+          longwaveUpSnow = 0.0_RKIND
+          longwaveUpPond = 0.0_RKIND
           call MPAS_pool_get_array(drag, "airDragCoefficient", airDragCoefficient)
           airDragCoefficient = seaice_column_initial_air_drag_coefficient()
 

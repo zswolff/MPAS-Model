@@ -269,6 +269,9 @@ contains
            latentHeatFluxInitialArea, &
            sensibleHeatFluxInitialArea, &
            longwaveUpInitialArea, &
+           longwaveUpIceInitialArea, &
+           longwaveUpSnowInitialArea, &
+           longwaveUpPondInitialArea, &
            evaporativeWaterFluxInitialArea, &
            surfaceHeatFluxInitialArea, &
            surfaceConductiveFluxInitialArea
@@ -287,6 +290,9 @@ contains
            latentHeatFlux, &
            sensibleHeatFlux, &
            longwaveUp, &
+           longwaveUpIce, &
+           longwaveUpSnow, &
+           longwaveUpPond, &
            evaporativeWaterFlux, &
            surfaceHeatFlux, &
            surfaceConductiveFlux
@@ -394,7 +400,30 @@ contains
                longwaveUpInitialArea % array(iCell) = longwaveUp(iCell) * iceAreaCellInitial(iCell)
             enddo ! iCell
          endif
-
+         ! longwaveIceUp - flwout
+         call MPAS_pool_get_field(areaVariablesAMPool, "longwaveUpIceInitialArea", longwaveUpIceInitialArea)
+         if (longwaveUpIceInitialArea % isActive) then
+            call MPAS_pool_get_array(atmosFluxesPool, "longwaveUpIce", longwaveUpIce)
+            do iCell = 1, nCellsSolve
+               longwaveUpIceInitialArea % array(iCell) = longwaveUpIce(iCell) * iceAreaCellInitial(iCell)
+            enddo ! iCell
+         endif
+         ! longwaveUp - flwout
+         call MPAS_pool_get_field(areaVariablesAMPool, "longwaveUpSnowInitialArea", longwaveUpSnowInitialArea)
+         if (longwaveUpSnowInitialArea % isActive) then
+            call MPAS_pool_get_array(atmosFluxesPool, "longwaveUpSnow", longwaveUpSnow)
+            do iCell = 1, nCellsSolve
+               longwaveUpSnowInitialArea % array(iCell) = longwaveUpSnow(iCell) * iceAreaCellInitial(iCell)
+            enddo ! iCell
+         endif
+         ! longwaveUp - flwout
+         call MPAS_pool_get_field(areaVariablesAMPool, "longwaveUpPondInitialArea", longwaveUpPondInitialArea)
+         if (longwaveUpPondInitialArea % isActive) then
+            call MPAS_pool_get_array(atmosFluxesPool, "longwaveUpPond", longwaveUpPond)
+            do iCell = 1, nCellsSolve
+               longwaveUpPondInitialArea % array(iCell) = longwaveUpPond(iCell) * iceAreaCellInitial(iCell)
+            enddo ! iCell
+         endif                  
          ! evaporativeWaterFlux - evap
          call MPAS_pool_get_field(areaVariablesAMPool, "evaporativeWaterFluxInitialArea", evaporativeWaterFluxInitialArea)
          if (evaporativeWaterFluxInitialArea % isActive) then

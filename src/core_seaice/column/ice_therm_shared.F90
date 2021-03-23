@@ -10,9 +10,7 @@
       module ice_therm_shared
 
       use ice_kinds_mod
-      use ice_constants_colpkg, only:  c1, c2, c4, &
-          cp_ocn, cp_ice, rhoi, Tffresh, TTTice, qqqice, &
-          stefan_boltzmann, emissivity, Lfresh
+      use ice_constants_colpkg
     
       implicit none
       save
@@ -22,7 +20,7 @@
                 surface_heat_flux, dsurface_heat_flux_dTsf, &
                 planck_exponent, planck_int, planck_power, &
                 Rad_calculate, rrtmg_longwave_flux, rrtmgp_longwave_flux, &
-                longwave_re_emitted_flux
+                longwave_re_emitted_flux, longwave_emitted
                
 
       real (kind=dbl_kind), parameter, public :: &
@@ -82,7 +80,6 @@
       function planck_exponent(Tsfk,wvn) &
            result(rad)
       
-      use ice_constants_colpkg 
       
       real(kind=dbl_kind), intent(in)::&
           Tsfk, &
@@ -131,7 +128,6 @@
     function planck_power(Tsfk,wvn) &
              result(rad)
       
-      use ice_constants_colpkg
       
       real(kind=dbl_kind), intent(in)::&
           Tsfk, wvn
@@ -150,7 +146,6 @@
          
       function Rad_calculate(wv, T) &
                result(rad)
-      use ice_constants_colpkg
       real (kind=dbl_kind), intent(in)::& 
           wv, & 
           T 
@@ -176,7 +171,6 @@
       function Planck_int(T,wvlo,wvhi,rad1,rad2) &
                result(flux) 
      
-      use ice_constants_colpkg
             
       real (kind=dbl_kind), intent(in)::&
          T, &
@@ -402,8 +396,9 @@
                                         flw11,flw12, &
                                         flw13, flw14, &
                                         flw15, flw16, &
-                                        flwdrem_ice, flwdrem_snow) 
-      use ice_constants_colpkg
+                                        flwdrem_ice, flwdrem_snow, &
+                                        flwdrem_pond) 
+      !use ice_constants_colpkg
       use ice_colpkg_shared, only: longwave
       
       real (kind=dbl_kind),intent(in) ::& 
@@ -426,10 +421,11 @@
                   
       real(kind=dbl_kind), intent(out) ::& 
          flwdrem_ice, &
-         flwdrem_snow
+         flwdrem_snow, &
+         flwdrem_pond
          
       real(kind=dbl_kind) ::&
-         flwi_1_ice,    & 
+         flwi_1_ice,    &  
          flwi_2_ice,    & 
          flwi_3_ice,    & 
          flwi_4_ice,    &
@@ -460,7 +456,24 @@
          flwi_13_snow,   & 
          flwi_14_snow,   & 
          flwi_15_snow,   & 
-         flwi_16_snow       
+         flwi_16_snow,   &
+         flwi_1_pond,    & 
+         flwi_2_pond,    & 
+         flwi_3_pond,    & 
+         flwi_4_pond,    & 
+         flwi_5_pond,    & 
+         flwi_6_pond,    & 
+         flwi_7_pond,    & 
+         flwi_8_pond,    & 
+         flwi_9_pond,    & 
+         flwi_10_pond,   & 
+         flwi_11_pond,   & 
+         flwi_12_pond,   & 
+         flwi_13_pond,   & 
+         flwi_14_pond,   & 
+         flwi_15_pond,   & 
+         flwi_16_pond
+                
        if (longwave== 'rrtmg') then 
            flwi_1_ice = (c1-emissivity_ice1)*(flw1)
            flwi_2_ice = (c1-emissivity_ice2)*(flw2)
@@ -488,13 +501,30 @@
            flwi_7_snow = (c1-emissivity_snow7)*(flw7)
            flwi_8_snow =(c1-emissivity_snow8)*(flw8)
            flwi_9_snow = (c1-emissivity_snow9)*(flw9)
-           flwi_10_snow = (c1-emissivity_snow10)*(flw10)
            flwi_11_snow = (c1-emissivity_snow11)*(flw11)
            flwi_12_snow = (c1-emissivity_snow12)*(flw12)
            flwi_13_snow = (c1-emissivity_snow13)*(flw13)
            flwi_14_snow = (c1-emissivity_snow14)*(flw14)
            flwi_15_snow = (c1-emissivity_snow15)*(flw15)
            flwi_16_snow = (c1-emissivity_snow16)*(flw16)
+           
+           flwi_1_pond = (c1-emissivity_pond1)*(flw1)
+           flwi_2_pond = (c1-emissivity_pond2)*(flw2)
+           flwi_3_pond = (c1-emissivity_pond3)*(flw3)
+           flwi_4_pond = (c1-emissivity_pond4)*(flw4)
+           flwi_5_pond = (c1-emissivity_pond5)*(flw5)
+           flwi_6_pond = (c1-emissivity_pond6)*(flw6)
+           flwi_7_pond = (c1-emissivity_pond7)*(flw7)
+           flwi_8_pond =(c1-emissivity_pond8)*(flw8)
+           flwi_9_pond = (c1-emissivity_pond9)*(flw9)
+           flwi_10_pond = (c1-emissivity_pond10)*(flw10)
+           flwi_11_pond = (c1-emissivity_pond11)*(flw11)
+           flwi_12_pond = (c1-emissivity_pond12)*(flw12)
+           flwi_13_pond = (c1-emissivity_pond13)*(flw13)
+           flwi_14_pond = (c1-emissivity_pond14)*(flw14)
+           flwi_15_pond = (c1-emissivity_pond15)*(flw15)
+           flwi_16_pond = (c1-emissivity_pond16)*(flw16)
+           
            
            flwdrem_ice = flwi_1_ice+flwi_2_ice+flwi_3_ice+flwi_4_ice+&
            flwi_5_ice+flwi_6_ice+flwi_7_ice+flwi_8_ice+flwi_9_ice+&
@@ -505,6 +535,11 @@
            flwi_5_snow+flwi_6_snow+flwi_7_snow+flwi_8_snow+flwi_9_snow+&
            flwi_10_snow+flwi_11_snow+flwi_12_snow+flwi_13_snow+flwi_14_snow+&
            flwi_15_snow+flwi_16_snow   
+           
+           flwdrem_pond = flwi_1_pond+flwi_2_pond+flwi_3_pond+flwi_4_pond+&
+           flwi_5_pond+flwi_6_pond+flwi_7_pond+flwi_8_pond+flwi_9_pond+&
+           flwi_10_pond+flwi_11_pond+flwi_12_pond+flwi_13_pond+flwi_14_pond+&
+           flwi_15_pond+flwi_16_pond   
        else 
            flwi_1_ice = (c1-emissivity_ice1_gp)*(flw1)
            flwi_2_ice = (c1-emissivity_ice2_gp)*(flw2)
@@ -540,6 +575,23 @@
            flwi_15_snow = (c1-emissivity_snow15)*(flw15)
            flwi_16_snow = (c1-emissivity_snow16_gp)*(flw16)
            
+           flwi_1_pond = (c1-emissivity_pond1_gp)*(flw1)
+           flwi_2_pond = (c1-emissivity_pond2)*(flw2)
+           flwi_3_pond = (c1-emissivity_pond3)*(flw3)
+           flwi_4_pond = (c1-emissivity_pond4)*(flw4)
+           flwi_5_pond = (c1-emissivity_pond5)*(flw5)
+           flwi_6_pond = (c1-emissivity_pond6)*(flw6)
+           flwi_7_pond = (c1-emissivity_pond7)*(flw7)
+           flwi_8_pond =(c1-emissivity_pond8)*(flw8)
+           flwi_9_pond = (c1-emissivity_pond9)*(flw9)
+           flwi_10_pond = (c1-emissivity_pond10)*(flw10)
+           flwi_11_pond = (c1-emissivity_pond11)*(flw11)
+           flwi_12_pond = (c1-emissivity_pond12)*(flw12)
+           flwi_13_pond = (c1-emissivity_pond13)*(flw13)
+           flwi_14_pond = (c1-emissivity_pond14)*(flw14)
+           flwi_15_pond = (c1-emissivity_pond15)*(flw15)
+           flwi_16_pond = (c1-emissivity_pond16_gp)*(flw16)
+           
            flwdrem_ice = flwi_1_ice+flwi_2_ice+flwi_3_ice+flwi_4_ice+&
            flwi_5_ice+flwi_6_ice+flwi_7_ice+flwi_8_ice+flwi_9_ice+&
            flwi_10_ice+flwi_11_ice+flwi_12_ice+flwi_13_ice+flwi_14_ice+&
@@ -549,9 +601,101 @@
            flwi_5_snow+flwi_6_snow+flwi_7_snow+flwi_8_snow+flwi_9_snow+&
            flwi_10_snow+flwi_11_snow+flwi_12_snow+flwi_13_snow+flwi_14_snow+&
            flwi_15_snow+flwi_16_snow  
+           
+           flwdrem_pond = flwi_1_pond+flwi_2_pond+flwi_3_pond+flwi_4_pond+&
+           flwi_5_pond+flwi_6_pond+flwi_7_pond+flwi_8_pond+flwi_9_pond+&
+           flwi_10_pond+flwi_11_pond+flwi_12_pond+flwi_13_pond+flwi_14_pond+&
+           flwi_15_pond+flwi_16_pond   
+        
         endif 
         
-       end subroutine longwave_re_emitted_flux                                                                             
+       end subroutine longwave_re_emitted_flux      
+              
+       subroutine longwave_absorbed_reflected_flux(flw_bnds, &
+                                                   flw_ice_abs_bnds, &
+                                                   flw_snow_abs_bnds, &
+                                                   flw_ice_ref_bnds, &
+                                                   flw_snow_ref_bnds)
+        
+        use ice_constants_colpkg
+        use ice_colpkg_shared, only: longwave    
+                                               
+        real(kind=dbl_kind), dimension(lw_nbd), intent(in):: & 
+          flw_bnds
+          
+        real(kind=dbl_kind), dimension(lw_nbd), intent(out):: & 
+          flw_ice_abs_bnds,  & 
+          flw_snow_abs_bnds, & 
+          !flw_pond_abs_bnds, &
+          flw_ice_ref_bnds,  & 
+          flw_snow_ref_bnds
+          !flw_pond_ref_bnds
+          
+      integer (kind=int_kind) :: &  
+          k !counter
+          
+      if (longwave == 'rrtmg') then 
+         do k=1,lw_nbd
+            flw_ice_abs_bnds(k) = ice_emissivity_rrtmg(k)*flw_bnds(k)
+            flw_snow_abs_bnds(k) = snow_emissivity_rrtmg(k)*flw_bnds(k) 
+            !flw_pond_abs_bnds(k) = pond_emissivity_rrtmg(k)*flw_bnds(k)
+            
+            flw_ice_ref_bnds(k) = (c1-ice_emissivity_rrtmg(k))*flw_bnds(k)
+            flw_snow_ref_bnds(k) = (c1-snow_emissivity_rrtmg(k))*flw_bnds(k) 
+            !flw_pond_ref_bnds(k) = (c1-pond_emissivity_rrtmg(k))*flw_bnds(k)
+         enddo 
+       else 
+         do k=1,lw_nbd
+            flw_ice_abs_bnds(k) = ice_emissivity_rrtmgp(k)*flw_bnds(k)
+            flw_snow_abs_bnds(k) = snow_emissivity_rrtmgp(k)*flw_bnds(k) 
+            !flw_pond_abs_bnds(k) = pond_emissivity_rrtmgp(k)*flw_bnds(k)
+            
+            flw_ice_ref_bnds(k) = (c1-ice_emissivity_rrtmgp(k))*flw_bnds(k)
+            flw_snow_ref_bnds(k) = (c1-snow_emissivity_rrtmgp(k))*flw_bnds(k) 
+            !flw_pond_ref_bnds(k) = (c1-pond_emissivity_rrtmgp(k))*flw_bnds(k)             
+         enddo   
+       endif
+      end subroutine longwave_absorbed_reflected_flux
+      
+      subroutine longwave_emitted(flwoutn_bnds,&
+                                  sfc_type, &
+                                  flwoutn_sfc_type_bnds)
+       
+       use ice_constants_colpkg
+       use ice_colpkg_shared, only: longwave 
+       
+       real(kind=dbl_kind), dimension(lw_nbd), intent(in):: & 
+          flwoutn_bnds 
+       character(len=*), intent(in):: & 
+          sfc_type
+       real(kind=dbl_kind), dimension(lw_nbd), intent(out):: & 
+          flwoutn_sfc_type_bnds
+          
+      integer (kind=int_kind) :: &  
+          k !counter
+          
+      if (longwave == 'rrtmg') then 
+         do k=1, lw_nbd
+            if (sfc_type == 'snow') then 
+                flwoutn_sfc_type_bnds(k) = -snow_emissivity_rrtmg(k)*flwoutn_bnds(k) 
+            !else if (sfc_type == 'pond') then 
+            !    flwoutn_sfc_type_bnds(k) = -pond_emissivity_rrtmg(k)*flwoutn_bnds(k)
+            else if (sfc_type == 'ice') then
+                flwoutn_sfc_type_bnds(k) = -ice_emissivity_rrtmg(k)*flwoutn_bnds(k)
+            endif !sfc_type
+        enddo 
+      else 
+         do k=1,lw_nbd
+            if (sfc_type == 'snow') then 
+                flwoutn_sfc_type_bnds(k) = -snow_emissivity_rrtmgp(k)*flwoutn_bnds(k) 
+            !else if (sfc_type == 'pond') then 
+            !    flwoutn_sfc_type_bnds(k) = -pond_emissivity_rrtmgp(k)*flwoutn_bnds(k)
+            else if (sfc_type == 'ice') then
+                flwoutn_sfc_type_bnds(k) = -ice_emissivity_rrtmgp(k)*flwoutn_bnds(k)
+            endif !sfc_type          
+         enddo   
+       endif !longwave
+      end subroutine longwave_emitted                                    
 !=======================================================================
 ! Surface heat flux
 !=======================================================================
@@ -580,7 +724,8 @@
                                    flwoutn9, flwoutn10,& 
                                    flwoutn11, flwoutn12,& 
                                    flwoutn13, flwoutn14,& 
-                                   flwoutn15, flwoutn16)
+                                   flwoutn15, flwoutn16, &
+                                   flwoutn_bnds)
 
       use ice_constants_colpkg
       use ice_colpkg_shared, only: longwave
@@ -644,6 +789,8 @@
          flwoutn14,    & ! upward LW at surface band 14 (W m-2)
          flwoutn15,    & ! upward LW at surface band 15 (W m-2)
          flwoutn16       ! upward LW at surface band 16 (W m-2)
+      real (kind=dbl_kind), intent(out), dimension(lw_nbd), optional :: & 
+         flwoutn_bnds
       ! local variables
       real(kind=dbl_kind) :: &
          TsfK        , & ! ice/snow surface temperature (K)
@@ -698,6 +845,12 @@
                                    flwoutn9, flwoutn10,flwoutn11, &
                                    flwoutn12, flwoutn13, flwoutn14, &
                                    flwoutn15, flwoutn16)
+           
+           flwoutn_bnds = (/ flwoutn1, flwoutn2, flwoutn3, flwoutn4, &
+                             flwoutn5, flwoutn6, flwoutn7, flwoutn8, & 
+                             flwoutn9, flwoutn10, flwoutn11,flwoutn12, &
+                             flwoutn13, flwoutn14, flwoutn15, flwoutn16 /)
+           
            if (l_snow) then
               flwi_1 = emissivity_snow1*(flw1)
               flwi_2 = emissivity_snow2*(flw2)
@@ -732,6 +885,7 @@
               flwoutn14= -emissivity_snow14*(flwoutn14)
               flwoutn15= -emissivity_snow15*(flwoutn15)
               flwoutn16= -emissivity_snow16*(flwoutn16)
+              
           else
               flwi_1 = emissivity_ice1*(flw1)
               flwi_2 = emissivity_ice2*(flw2)
@@ -787,7 +941,10 @@
                                    flwoutn15, flwoutn16)                         
 
           !flwdabs =  emissivity * flw
-
+          flwoutn_bnds = (/ flwoutn1, flwoutn2, flwoutn3, flwoutn4, &
+                             flwoutn5, flwoutn6, flwoutn7, flwoutn8, & 
+                             flwoutn9, flwoutn10, flwoutn11,flwoutn12, &
+                             flwoutn13, flwoutn14, flwoutn15, flwoutn16 /)
           if (l_snow) then
               flwi_1 = emissivity_snow1_gp*(flw1)
               flwi_2 = emissivity_snow2_gp*(flw2)

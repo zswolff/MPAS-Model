@@ -36,8 +36,9 @@
                          ! if false, Tsfc is computed elsewhere and
                          ! atmos-ice fluxes are provided to CICE
          solve_zsal  ,  &! if true, update salinity profile from solve_S_dt
-         modal_aero      ! if true, use modal aerosal optical properties
+         modal_aero  ,  &! if true, use modal aerosal optical properties
                          ! only for use with tr_aero or tr_zaero
+         use_subgridscale !if true calculates subgridscale area weighted longwave fluxes
 
       real (kind=dbl_kind), parameter, public :: &
          saltmax = 3.2_dbl_kind,   & ! max salinity at ice base for BL99 (ppt)

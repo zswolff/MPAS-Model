@@ -89,7 +89,8 @@
                                   flw10,       flw11,     &
                                   flw12,       flw13,     &
                                   flw14,       flw15,     &
-                                  flw16)
+                                  flw16, &
+                                  flwoutn_ice, flwoutn_snow)
 
       use ice_therm_mushy, only: temperature_changes_salinity
 
@@ -184,6 +185,9 @@
          fsurfn   , & ! net flux to top surface, excluding fcondtopn
          fcondtopn    ! downward cond flux at top surface (W m-2)
 
+      real (kind=dbl_kind), intent(inout),  optional::  &
+          flwoutn_ice, &
+          flwoutn_snow
       ! coupler fluxes to ocean
       real (kind=dbl_kind), intent(out):: &
          freshn  , & ! fresh water flux to ocean (kg/m^2/s)
@@ -243,7 +247,7 @@
          flwoutn13,    & ! upward LW at surface band 13 (W m-2)
          flwoutn14,    & ! upward LW at surface band 14 (W m-2)
          flwoutn15,    & ! upward LW at surface band 15 (W m-2)
-         flwoutn16,    & ! upward LW at surface band 16 (W m-2)
+         flwoutn16,    & ! upward LW at surface band 16 (W m-2
          hilyr       , & ! ice layer thicknessic 
          hslyr       , & ! snow layer thickness
          hin         , & ! ice thickness (m)
@@ -367,7 +371,8 @@
                                                   flwoutn9, flwoutn10,  &
                                                   flwoutn11, flwoutn12, &
                                                   flwoutn13, flwoutn14, &
-                                                  flwoutn15, flwoutn16)
+                                                  flwoutn15, flwoutn16, &
+                                                  flwoutn_ice, flwoutn_snow)
                else 
                    call temperature_changes_salinity(dt,                   & 
                                                      nilyr,     nslyr,     &

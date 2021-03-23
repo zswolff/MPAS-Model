@@ -44,6 +44,8 @@
                                fsurf,    fcondtop,   &
                                fsens,    flat,       & 
                                fswabs,   flwout,     &
+                               flwout_ice, flwout_snow, &
+                               flwout_pond,         &
                                evap,                 & 
                                Tref,     Qref,       &
                                fresh,    fsalt,      & 
@@ -55,19 +57,26 @@
                                meltb,    congel,     &
                                snoice,   meltsliq,   &
                                apeffn,               &
+                               snowfracn,            &
+                               icefracn,             &
                                vsnon,                &
                                flwdrem_ice,          &
-                               flwdrem_snow,         &
+                               flwdrem_snow,         &                               
+                               flwdrem_pond,         &
+                               flwoutn_ice,          & 
+                               flwoutn_snow,         & 
+                               !flwoutn_pond,         &
                                Uref,     Urefn)
       
       use ice_constants_colpkg
-      use ice_colpkg_shared, only: longwave
+      use ice_colpkg_shared, only: longwave, use_subgridscale
       use ice_warnings, only: add_warning
       !use ice_domain_size, only: max_ntrcr, nslyr
       ! single category fluxes
       real (kind=dbl_kind), intent(in):: &
           aicen   , & ! concentration of ice
           apeffn  , &
+          snowfracn, &
           flw     , & ! downward longwave flux          (W/m**2)
           coszn   , & ! cosine of solar zenith angle 
           strairxn, & ! air/ice zonal  strss,           (N/m**2)
@@ -91,27 +100,17 @@
           meltsn  , & ! snow melt                       (m)
           meltsliqn,& ! snow liquid contribution to meltpond (kg/m^2)
           congeln , & ! congelation ice growth          (m)
-          snoicen,  &     ! snow-ice growth                 (m)
+          snoicen     ! snow-ice growth                 (m)
+      real (kind=dbl_kind), optional, intent(in):: &    
           flwdrem_ice, &
-          flwdrem_snow
+          flwdrem_snow, &
+          flwdrem_pond, &
+          !snowfracn, &
+          flwoutn_snow, &
+          flwoutn_ice
+          !apeffn
+          
       
-      !real (kind=dbl_kind), intent(in), optional:: &          
-      !    flw1    , & ! incoming longwave radiation band 1 (W/m^2)
-      !    flw2    , & ! incoming longwave radiation band 2 (W/m^2)
-      !    flw3    , & ! incoming longwave radiation band 3 (W/m^2)
-      !    flw4    , & ! incoming longwave radiation band 4 (W/m^2)
-      !    flw5    , & ! incoming longwave radiation band 5 (W/m^2)
-      !    flw6    , & ! incoming longwave radiation band 6 (W/m^2)
-      !    flw7    , & ! incoming longwave radiation band 7 (W/m^2)
-      !    flw8    , & ! incoming longwave radiation band 8 (W/m^2)
-      !    flw9    , & ! incoming longwave radiation band 9 (W/m^2)
-      !    flw10   , & ! incoming longwave radiation band 10 (W/m^2)
-      !    flw11   , & ! incoming longwave radiation band 11 (W/m^2)
-      !    flw12   , & ! incoming longwave radiation band 12 (W/m^2)
-      !    flw13   , & ! incoming longwave radiation band 13 (W/m^2)
-      !    flw15   , & ! incoming longwave radiation band 15 (W/m^2)
-      !    flw16   , & ! incoming longwave radiation band 16 (W/m^2) 
-      !    flw14       ! incoming longwave radiation band 14 (W/m^2)
           
       real (kind=dbl_kind), optional, intent(in):: &
           Urefn       ! air speed reference level       (m/s)
@@ -127,6 +126,9 @@
           flat    , & ! latent   heat flx               (W/m**2)
           fswabs  , & ! shortwave absorbed heat flx     (W/m**2)
           flwout  , & ! upwd lw emitted heat flx        (W/m**2)
+          flwout_ice, & ! upwd lw emitted heat flx over ice (W/m**2)
+          flwout_snow, & ! upwd lw emitted heat flx over snow (W/m**2)
+          flwout_pond, & ! upwd lw emitted heat flx over ponds (W/m**2)
           evap    , & ! evaporation                     (kg/m2/s)
           Tref    , & ! air tmp reference level         (K)
           Qref    , & ! air sp hum reference level      (kg/kg)
@@ -142,8 +144,8 @@
           snoice      ! snow-ice growth                 (m)
 
       real (kind=dbl_kind), optional, intent(inout):: &
-          Uref  ! air speed reference level       (m/s)
-       
+          Uref, &  ! air speed reference level       (m/s)
+          icefracn
       real (kind= dbl_kind), intent(in)  :: &
            vsnon
       integer (kind=int_kind), intent(in) :: &  
@@ -153,29 +155,16 @@
       logical(kind=log_kind) :: &
          lsnow           ! snow presence: T: has snow, F: no snow
       real (kind=dbl_kind) :: &
-          flwdrem_old
+          flwdrem_old, &
+          flwout_ice_temp,  &
+          flwout_snow_temp, & 
+          flwout_pond_temp
       character (len=char_len_long) :: & 
          warning   
          
       logical (kind= log_kind) :: &
          l_stop 
-          !flw1_d    , & ! incoming LW reflected by band 1(W m-2)
-          !flw2_d    , & ! incoming LW reflected by band 2 (W m-2)
-          !flw3_d    , & ! incoming LW reflected by band 3 (W m-2)
-          !flw4_d    , & ! incoming LW reflected by band 4 (W m-2)
-          !flw5_d    , & ! incoming LW reflected by band 5 (W m-2)
-          !flw6_d    , & ! incoming LW reflected by band 6 (W m-2)
-          !flw7_d    , & ! incoming LW reflected by band 7 (W m-2)
-          !flw8_d    , & ! incoming LW reflected by band 8 (W m-2)
-          !flw9_d    , & ! incoming LW reflected by band 9 (W m-2)
-          !flw10_d   , & ! incoming LW reflected by band 10 (W m-2)
-          !flw11_d   , & ! incoming LW reflected by band 11 (W m-2)
-          !flw12_d   , & ! incoming LW reflected by band 12 (W m-2)
-          !flw13_d   , & ! incoming LW reflected by band 13 (W m-2)
-          !flw14_d   , & ! incoming LW reflected by band 14 (W m-2)
-          !flw15_d   , & ! incoming LW reflected by band 15 (W m-2)
-          !flw16_d   , & ! incoming LW reflected by band 16 (W m-2)
-          !flw_dn_out    ! Total incoming LW reflected
+         
       !-----------------------------------------------------------------
       ! Merge fluxes
       ! NOTE: The albedo is aggregated only in cells where ice exists
@@ -184,25 +173,17 @@
       !-----------------------------------------------------------------
       ! initialize 
       
-      !flw1_d = c0 
-      !flw2_d = c0 
-      !flw3_d = c0 
-      !flw4_d = c0 
-      !flw5_d = c0 
-      !flw6_d = c0 
-      !flw7_d = c0 
-      !flw8_d = c0 
-      !flw9_d = c0 
-      !flw10_d = c0 
-      !flw11_d = c0 
-      !flw12_d = c0 
-      !flw13_d = c0 
-      !flw14_d = c0 
-      !flw15_d = c0 
-      !flw16_d = c0 
-      
+   
+      !if ((apeffn+snowfracn)< c1) then 
+      !   icefracn = c1-apeffn-snowfracn
+      !else 
+      !   icefracn = c0 
+      !endif
       
       ! atmo fluxes
+      
+      icefracn = c1-apeffn-snowfracn
+      !print*, icefracn+apeffn+snowfracn
         
       strairxT   = strairxT + strairxn  * aicen
       strairyT   = strairyT + strairyn  * aicen
@@ -217,8 +198,33 @@
       !     + (flwoutn - (c1-emissivity)*flw) * aicen
       hslyr = ((vsnon/aicen)/real(nslyr))
       if (longwave == 'rrtmg' .or. longwave== 'rrtmgp') then           
-          if (hslyr>hs_min) then      
-            flwdrem_old =(c1-emissivity)*flw
+          !print *, apeffn, snowfracn, icefracn 
+          if (use_subgridscale) then
+            flwout_ice_temp = (flwoutn_ice-flwdrem_ice)
+            flwout_snow_temp = (flwoutn_snow-flwdrem_snow)
+            flwout_pond_temp = (Pond_flux-flwdrem_pond)
+            flwout_ice = flwout_ice + (flwout_ice_temp*aicen*icefracn)
+            flwout_snow = flwout_snow + (flwout_snow_temp*aicen*snowfracn)
+            flwout_pond = flwout_pond + (flwout_pond_temp*aicen*apeffn)
+            !flwout_ice_nw = flwout_ice_nw + (flwout_ice_temp*aicen)
+            !flwout_snow_nw = flwout_snow_nw + (flwout_snow_temp*aicen)
+            !flwout_pond_nw = flwout_pond_nw + (flwout_pond_temp*aicen)
+          !print *, aicen, ((icefracn*aicen)+(snowfracn*aicen)+(apeffn*aicen))
+          !print *, flwoutn_ice, flwoutn_snow, Pond_flux, flwoutn
+          !print *, flwdrem_ice, flwdrem_snow
+          !print *, icefracn, snowfracn, apeffn, aicen, hslyr
+            flwout = flwout+ (((flwout_ice_temp*icefracn)+(flwout_snow_temp*snowfracn)+(flwout_pond_temp*apeffn))*aicen)
+           else
+                if (hslyr>hs_min) then
+                    !flwout = flwout+ (flwoutn_snow - flwdrem_snow)*aicen
+                    flwout = flwout + ((flwoutn*(c1-apeffn))+(apeffn*Pond_flux)-flwdrem_snow)*aicen
+                else
+                    !flwout = flwout+ (flwoutn_ice - flwdrem_ice)*aicen
+                    flwout = flwout + ((flwoutn*(c1-apeffn))+(apeffn*Pond_flux)-flwdrem_ice)*aicen
+                endif
+           endif 
+          !if (hslyr>hs_min) then      
+            !flwdrem_old =(c1-emissivity)*flw
             !l_stop = flwdrem_snow - flwdrem_old > 1e-2_dbl_kind .or. flwdrem_snow - flwdrem_old  < -1e-2_dbl_kind
             
             !if (l_stop) then
@@ -230,11 +236,11 @@
             !flwout = flwout + (flwoutn-flwdrem_snow)*aicen
             
             !flwout = flwout + ((c1-apeffn)*(flwoutn-flwdrem_snow)+(apeffn*Pond_flux))*aicen
-            flwout = flwout + ((flwoutn*(c1-apeffn))+(apeffn*Pond_flux)-flwdrem_snow)*aicen
-          else
+            !flwout = flwout + ((flwoutn*(c1-apeffn))+(apeffn*Pond_flux)-flwdrem_snow)*aicen
+          !else
             !flwout = flwout + (((c1-apeffn)*(flwoutn-flwdrem_ice))+(apeffn*(Pond_flux)))*aicen
-            flwout = flwout + ((flwoutn*(c1-apeffn))+(apeffn*Pond_flux)-flwdrem_ice)*aicen
-         endif
+           ! flwout = flwout + ((flwoutn*(c1-apeffn))+(apeffn*Pond_flux)-flwdrem_ice)*aicen
+         !endif
       else 
           flwout = flwout+(flwoutn-(c1-emissivity)*flw)*aicen 
       endif

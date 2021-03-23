@@ -42,6 +42,16 @@
 		<var name="longwaveUpInitialArea" type="real" dimensions="nCells Time" units="UNITS HERE"
 			description="DESCRIPTION HERE"
 		/>
+		<var name="longwaveUpIceInitialArea" type="real" dimensions="nCells Time" units="UNITS HERE"
+			description="DESCRIPTION HERE"
+		/>
+		<var name="longwaveUpSnowInitialArea" type="real" dimensions="nCells Time" units="UNITS HERE"
+			description="DESCRIPTION HERE"
+		/>
+		<var name="longwaveUpPondInitialArea" type="real" dimensions="nCells Time" units="UNITS HERE"
+			description="DESCRIPTION HERE"
+		/>
+		
 		<var name="evaporativeWaterFluxInitialArea" type="real" dimensions="nCells Time" units="UNITS HERE"
 			description="DESCRIPTION HERE"
 		/>

@@ -1600,6 +1600,11 @@
 			possible_values="'SB', 'rrtmg', or 'rrtmgp'"
 			icepack_name="longwave"
 		/>
+		<nml_option name="config_use_subgridscale" type="logical" default_value="false" units="unitless"
+			description="If true calculate longwave using area weighted subgridscale surfaces. If false use dominant surface type."
+			possible_values="true or false"
+			icepack_name="use_subgridscale"
+		/>
 		<nml_option name="config_heat_conductivity_type" type="character" default_value="bubbly" units="unitless"
 			description="Thermal conductivity type for BL99 thermodynamics. Options are Maykut and Untersteiner 1971 form (with Wettlaufer 1991 constants), or Pringle et al JGR 2007 'bubbly brine'"
 			possible_values="'MU71' or 'bubbly'"
@@ -3704,6 +3709,9 @@
 		<var name="surfaceConductiveFlux"		type="real"	dimensions="nCells Time"		name_in_code="surfaceConductiveFlux"/>
 		<var name="surfaceConductiveFluxCategory"	type="real"	dimensions="nCategories nCells Time"	name_in_code="surfaceConductiveFluxCategory"/>
 		<var name="longwaveUp"				type="real"	dimensions="nCells Time"		name_in_code="longwaveUp"/>
+		<var name="longwaveUpIce"				type="real"	dimensions="nCells Time"		name_in_code="longwaveUpIce"/>
+		<var name="longwaveUpSnow"				type="real"	dimensions="nCells Time"		name_in_code="longwaveUpSnow"/>
+		<var name="longwaveUpPond"				type="real"	dimensions="nCells Time"		name_in_code="longwaveUpPond"/>
 		<var name="sensibleHeatFlux"			type="real"	dimensions="nCells Time"		name_in_code="sensibleHeatFlux"/>
 		<var name="sensibleHeatFluxCategory"		type="real"	dimensions="nCategories nCells Time"	name_in_code="sensibleHeatFluxCategory"/>
 		<var name="latentHeatFlux"			type="real"	dimensions="nCells Time"		name_in_code="latentHeatFlux"/>
@@ -3784,6 +3792,9 @@
 		<var name="effectivePondAreaCategory"		type="real"	dimensions="nCategories nCells Time"			name_in_code="effectivePondAreaCategory"/>
 		<var name="effectivePondAreaCell"		type="real"	dimensions="nCells Time"				name_in_code="effectivePondAreaCell"/>
 		<var name="snowFractionCategory"		type="real"	dimensions="nCategories nCells Time"			name_in_code="snowFractionCategory"/>
+		<var name="snowFractionCell"		type="real"	dimensions="nCells Time"				name_in_code="snowFractionCell"/>
+		<var name="iceFractionCategory"		type="real"	dimensions="nCategories nCells Time"			name_in_code="iceFractionCategory"/>
+		<var name="iceFractionCell"		type="real"	dimensions="nCells Time"				name_in_code="iceFractionCell"/>
 	</var_struct>
 
 	<!-- form drag formulation -->
