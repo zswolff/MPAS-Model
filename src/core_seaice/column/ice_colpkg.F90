@@ -1807,6 +1807,9 @@
                                     snowfracn,                  &
                                     apeffn,                     &
                                     icefracn,                   &
+                                    icefrac_tot,                &
+                                    snowfrac_tot,               &
+                                    pondfrac_tot,               &
                                     prescribed_ice)
 
       use ice_aerosol, only: update_aerosol
@@ -1960,6 +1963,10 @@
          congeln     , & ! congelation ice growth          (m)
          snoicen     , & ! snow-ice growth                 (m)
          dsnown          ! change in snow thickness (m/step-->cm/day)
+        real (kind=dbl_kind), intent(inout), optional :: &  
+         icefrac_tot,              &
+         snowfrac_tot,             &
+         pondfrac_tot
        real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          apeffn, &
          snowfracn, & 
@@ -2474,6 +2481,9 @@
                                        apeffn(n),                &
                                        snowfracn(n),             &
                                        icefracn(n),              &
+                                       icefrac_tot,              &
+                                       snowfrac_tot,             &
+                                       pondfrac_tot,             &
                                        vsnon(n),                 &
                                        flwdrem_ice,              &
                                        flwdrem_snow,             &

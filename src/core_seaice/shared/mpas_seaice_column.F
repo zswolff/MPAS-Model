@@ -1415,7 +1415,10 @@ contains
          oceanHeatFluxIceBottom, &
          openWaterArea, &
          snowLossToLeads, &
-         snowMeltMassCell
+         snowMeltMassCell, &
+         fractionalIceCoverage, &
+         fractionalSnowCoverage, &
+         fractionalPondCoverage
 
     real(kind=RKIND), dimension(:,:), pointer :: &
          iceAreaCategoryInitial, &
@@ -1540,7 +1543,10 @@ contains
        call MPAS_pool_get_array(icestate, "iceVolumeCategoryInitial", iceVolumeCategoryInitial)
        call MPAS_pool_get_array(icestate, "snowVolumeCategoryInitial", snowVolumeCategoryInitial)
        call MPAS_pool_get_array(icestate, "openWaterArea", openWaterArea)
-
+       call MPAS_pool_get_array(icestate, "fractionalIceCoverage", fractionalIceCoverage)
+       call MPAS_pool_get_array(icestate, "fractionalSnowCoverage", fractionalSnowCoverage)
+       call MPAS_pool_get_array(icestate, "fractionalPondCoverage", fractionalPondCoverage)
+       
        call MPAS_pool_get_array(tracers_aggregate, "iceAreaCell", iceAreaCell)
        call MPAS_pool_get_array(tracers_aggregate, "iceVolumeCell", iceVolumeCell)
        call MPAS_pool_get_array(tracers_aggregate, "snowVolumeCell", snowVolumeCell)
@@ -1882,7 +1888,10 @@ contains
                abortMessage, &
                snowFractionCategory(:,iCell), &
                effectivePondAreaCategory(:,iCell), &
-               iceFractionCategory(:,iCell))
+               iceFractionCategory(:,iCell),  &
+               fractionalIceCoverage(iCell),  &
+               fractionalSnowCoverage(iCell), &
+               fractionalPondCoverage(iCell))
           call column_write_warnings(abortFlag)
 
           ! cell-specific abort message
@@ -12203,6 +12212,7 @@ contains
          velocitySolverPool, &
          atmosFluxesPool, &
          shortwavePool, &
+         icestate,      &
          atmosCouplingPool
 
     real(kind=RKIND), dimension(:), pointer :: &
@@ -12215,6 +12225,9 @@ contains
          longwaveUpIce, &
          longwaveUpSnow, &
          longwaveUpPond, &
+         fractionalIceCoverage, &
+         fractionalSnowCoverage, &
+         fractionalPondCoverage, &
          absorbedShortwaveFlux, &
          atmosReferenceTemperature2m, &
          atmosReferenceHumidity2m, &
@@ -12228,6 +12241,7 @@ contains
 
        call MPAS_pool_get_subpool(block % structs, "velocity_solver", velocitySolverPool)
        call MPAS_pool_get_subpool(block % structs, "atmos_coupling", atmosCouplingPool)
+       
 
        call MPAS_pool_get_array(velocitySolverPool, "airStressCellU", airStressCellU)
        call MPAS_pool_get_array(velocitySolverPool, "airStressCellV", airStressCellV)
@@ -12249,7 +12263,8 @@ contains
 
           call MPAS_pool_get_subpool(block % structs, "atmos_fluxes", atmosFluxesPool)
           call MPAS_pool_get_subpool(block % structs, "shortwave", shortwavePool)
-
+          call MPAS_pool_get_subpool(block % structs, "icestate", icestate)
+          
           call MPAS_pool_get_array(atmosFluxesPool, "sensibleHeatFlux", sensibleHeatFlux)
           call MPAS_pool_get_array(atmosFluxesPool, "latentHeatFlux", latentHeatFlux)
           call MPAS_pool_get_array(atmosFluxesPool, "evaporativeWaterFlux", evaporativeWaterFlux)
@@ -12259,7 +12274,11 @@ contains
           call MPAS_pool_get_array(atmosFluxesPool, "longwaveUpPond", longwaveUpPond)
 
           call MPAS_pool_get_array(shortwavePool, "absorbedShortwaveFlux", absorbedShortwaveFlux)
-
+          
+          call MPAS_pool_get_array(icestate, "fractionalIceCoverage", fractionalIceCoverage)
+          call MPAS_pool_get_array(icestate, "fractionalSnowCoverage", fractionalSnowCoverage)
+          call MPAS_pool_get_array(icestate, "fractionalPondCoverage", fractionalPondCoverage)
+          
           absorbedShortwaveFlux(:) = 0.0_RKIND
 
           sensibleHeatFlux(:)      = 0.0_RKIND
@@ -12269,6 +12288,10 @@ contains
           longwaveUpIce(:)         = 0.0_RKIND
           longwaveUpSnow(:)        = 0.0_RKIND
           longwaveUpPond(:)        = 0.0_RKIND
+          
+          fractionalIceCoverage(:) = 0.0_RKIND
+          fractionalSnowCoverage(:) = 0.0_RKIND
+          fractionalPondCoverage(:) = 0.0_RKIND
 
        endif ! config_use_column_package
 

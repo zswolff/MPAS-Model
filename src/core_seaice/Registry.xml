@@ -2603,6 +2603,9 @@
 		<var name="iceAreaVertex"			type="real"	dimensions="nVertices Time"		name_in_code="iceAreaVertex"/>
 		<var name="totalMassCell"			type="real"	dimensions="nCells Time"		name_in_code="totalMassCell"/>
 		<var name="totalMassVertex"			type="real"	dimensions="nVertices Time"		name_in_code="totalMassVertex"/>
+		<var name="fractionalIceCoverage"	type="real"	dimensions="nCells Time"		name_in_code="fractionalIceCoverage"/>
+		<var name="fractionalSnowCoverage"	type="real"	dimensions="nCells Time"		name_in_code="fractionalSnowCoverage"/>
+		<var name="fractionalPondCoverage"	type="real"	dimensions="nCells Time"		name_in_code="fractionalPondCoverage"/>
 	</var_struct>
 	<var_struct name="tracer_tendencies" time_levs="1">
 		<var name="iceAreaCategoryTend"		type="real"	dimensions="ONE nCategories nCells"		name_in_code="iceAreaCategoryTend"/>

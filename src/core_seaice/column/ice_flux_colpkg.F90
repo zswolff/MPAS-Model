@@ -59,6 +59,9 @@
                                apeffn,               &
                                snowfracn,            &
                                icefracn,             &
+                               icefrac_tot,          &
+                               snowfrac_tot,          &
+                               pondfrac_tot,          &
                                vsnon,                &
                                flwdrem_ice,          &
                                flwdrem_snow,         &                               
@@ -142,6 +145,10 @@
           meltsliq, & ! snow liquid contribution to meltponds (kg/m^2)
           congel  , & ! congelation ice growth          (m)
           snoice      ! snow-ice growth                 (m)
+      real (kind=dbl_kind), optional, intent(inout) :: &    
+          icefrac_tot, &
+          snowfrac_tot, & 
+          pondfrac_tot
 
       real (kind=dbl_kind), optional, intent(inout):: &
           Uref, &  ! air speed reference level       (m/s)
@@ -206,6 +213,9 @@
             flwout_ice = flwout_ice + (flwout_ice_temp*aicen*icefracn)
             flwout_snow = flwout_snow + (flwout_snow_temp*aicen*snowfracn)
             flwout_pond = flwout_pond + (flwout_pond_temp*aicen*apeffn)
+            icefrac_tot = icefrac_tot + (icefracn*aicen)
+            snowfrac_tot = snowfrac_tot + (snowfracn*aicen)
+            pondfrac_tot = pondfrac_tot + (apeffn*aicen)
             !flwout_ice_nw = flwout_ice_nw + (flwout_ice_temp*aicen)
             !flwout_snow_nw = flwout_snow_nw + (flwout_snow_temp*aicen)
             !flwout_pond_nw = flwout_pond_nw + (flwout_pond_temp*aicen)
