@@ -51,7 +51,12 @@
 		<var name="longwaveUpPondInitialArea" type="real" dimensions="nCells Time" units="UNITS HERE"
 			description="DESCRIPTION HERE"
 		/>
-		
+		<var name="longwaveUpGreybodyInitialArea" type="real" dimensions="nCells Time" units="UNITS HERE"
+			description="DESCRIPTION HERE"
+		/>
+		<var name="longwaveUpDominantSurfaceInitialArea" type="real" dimensions="nCells Time" units="UNITS HERE"
+			description="DESCRIPTION HERE"
+		/>
 		<var name="evaporativeWaterFluxInitialArea" type="real" dimensions="nCells Time" units="UNITS HERE"
 			description="DESCRIPTION HERE"
 		/>

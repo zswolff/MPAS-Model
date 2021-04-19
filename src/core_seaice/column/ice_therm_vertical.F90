@@ -90,7 +90,8 @@
                                   flw12,       flw13,     &
                                   flw14,       flw15,     &
                                   flw16, &
-                                  flwoutn_ice, flwoutn_snow)
+                                  flwoutn_ice, flwoutn_snow, &
+                                  flwoutn_greybody)
 
       use ice_therm_mushy, only: temperature_changes_salinity
 
@@ -187,7 +188,8 @@
 
       real (kind=dbl_kind), intent(inout),  optional::  &
           flwoutn_ice, &
-          flwoutn_snow
+          flwoutn_snow, &
+          flwoutn_greybody
       ! coupler fluxes to ocean
       real (kind=dbl_kind), intent(out):: &
          freshn  , & ! fresh water flux to ocean (kg/m^2/s)
@@ -372,7 +374,8 @@
                                                   flwoutn11, flwoutn12, &
                                                   flwoutn13, flwoutn14, &
                                                   flwoutn15, flwoutn16, &
-                                                  flwoutn_ice, flwoutn_snow)
+                                                  flwoutn_ice, flwoutn_snow, &
+                                                  flwoutn_greybody)
                else 
                    call temperature_changes_salinity(dt,                   & 
                                                      nilyr,     nslyr,     &

@@ -1780,6 +1780,8 @@
                                     fswthrun    , fswabs      , &
                                     flwout      , flwout_ice  , &
                                     flwout_snow , flwout_pond , &
+                                    flwout_greybody,            &
+                                    flwout_dominant,            &
                                     Sswabsn     , Iswabsn     , &
                                     flw         , coszen      , & 
                                     fsens       , fsensn      , &
@@ -1882,6 +1884,8 @@
          flwout_ice  , & ! outgoing longwave radiation over ice (W/m^2)
          flwout_snow , & ! outgoing longwave radiation over snow (W/m^2)
          flwout_pond , & ! outgoing longwave radiation over ponds(W/m^2)
+         flwout_greybody, & ! outgoing longwave radiation with greybody emissivity(W/m^2)
+         flwout_dominant, & ! outgoing longwave radiation from dominant surface tpe (W/m^2)
          evap        , & ! evaporative water flux (kg/m^2/s)
          congel      , & ! basal ice growth         (m/step-->cm/day)
          frazil      , & ! frazil ice growth        (m/step-->cm/day)
@@ -2041,7 +2045,8 @@
          !flwout_ice, &
          !flwout_snow, & 
          flwoutn_ice, &
-         flwoutn_snow
+         flwoutn_snow, &
+         flwoutn_greybody
          
          
       real (kind=dbl_kind) :: &
@@ -2293,7 +2298,8 @@
                                  flw12,        flw13,        &
                                  flw14,        flw15,        & 
                                  flw16, &
-                                 flwoutn_ice, flwoutn_snow)
+                                 flwoutn_ice, flwoutn_snow, &
+                                 flwoutn_greybody)
                                 
                 if (l_stop) then
              	 stop_label = 'ice: Vertical thermo error: '//trim(stop_label)
@@ -2468,6 +2474,8 @@
                                        fswabs,     flwout,       &
                                        flwout_ice, flwout_snow,  &
                                        flwout_pond,              &
+                                       flwout_greybody,          &
+                                       flwout_dominant,          &
                                        evap,                     &
                                        Tref,       Qref,         &
                                        fresh,      fsalt,        &
@@ -2490,6 +2498,7 @@
                                        flwdrem_pond,             & 
                                        flwoutn_ice,              & 
                                        flwoutn_snow,             & 
+                                       flwoutn_greybody,         &
                                        Uref,       Urefn)
          endif
       enddo                  ! ncat

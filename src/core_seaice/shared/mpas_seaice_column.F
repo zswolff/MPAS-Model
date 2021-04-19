@@ -1394,6 +1394,8 @@ contains
          longwaveUpIce, &
          longwaveUpSnow, &
          longwaveUpPond, &
+         longwaveUpGreybody, &
+         longwaveUpDominantSurface, &
          longwaveDown, &
          solarZenithAngleCosine, &
          sensibleHeatFlux, &
@@ -1650,6 +1652,8 @@ contains
        call MPAS_pool_get_array(atmos_fluxes, "longwaveUpIce", longwaveUpIce)
        call MPAS_pool_get_array(atmos_fluxes, "longwaveUpSnow", longwaveUpSnow)
        call MPAS_pool_get_array(atmos_fluxes, "longwaveUpPond", longwaveUpPond)
+       call MPAS_pool_get_array(atmos_fluxes, "longwaveUpGreybody", longwaveUpGreybody)
+       call MPAS_pool_get_array(atmos_fluxes, "longwaveUpDominantSurface", longwaveUpDominantSurface)
        call MPAS_pool_get_array(atmos_fluxes, "sensibleHeatFlux", sensibleHeatFlux)
        call MPAS_pool_get_array(atmos_fluxes, "sensibleHeatFluxCategory", sensibleHeatFluxCategory)
        call MPAS_pool_get_array(atmos_fluxes, "latentHeatFlux", latentHeatFlux)
@@ -1843,6 +1847,8 @@ contains
                longwaveUpIce(iCell), &
                longwaveUpSnow(iCell), &
                longwaveUpPond(iCell), &
+               longwaveUpGreybody(iCell), &
+               longwaveUpDominantSurface(iCell), &
                absorbedShortwaveSnowLayer(:,:,iCell), &
                absorbedShortwaveIceLayer(:,:,iCell), &
                longwaveDown(iCell), &
@@ -4864,6 +4870,8 @@ contains
          longwaveUpIce, &
          longwaveUpSnow, &
          longwaveUpPond, &
+         longwaveUpGreybody, &
+         longwaveUpDominantSurface, &
          evaporativeWaterFlux, &
          atmosReferenceHumidity2m, &
          atmosReferenceTemperature2m, &
@@ -4942,7 +4950,9 @@ contains
        call MPAS_pool_get_array(atmosFluxes, "longwaveUpIce", longwaveUpIce)
        call MPAS_pool_get_array(atmosFluxes, "longwaveUpSnow", longwaveUpSnow)
        call MPAS_pool_get_array(atmosFluxes, "longwaveUpPond", longwaveUpPond)
-
+       call MPAS_pool_get_array(atmosFluxes, "longwaveUpGreybody", longwaveUpGreybody)
+       call MPAS_pool_get_array(atmosFluxes, "longwaveUpDominantSurface", longwaveUpDominantSurface)
+       
        call MPAS_pool_get_array(shortwave, "absorbedShortwaveFlux", absorbedShortwaveFlux)
        call MPAS_pool_get_array(shortwave, "albedoVisibleDirectCell", albedoVisibleDirectCell)
        call MPAS_pool_get_array(shortwave, "albedoIRDirectCell", albedoIRDirectCell)
@@ -5000,6 +5010,8 @@ contains
              longwaveUpIce(iCell)               = longwaveUpIce(iCell)               * iceAreaInverse
              longwaveUpSnow(iCell)              = longwaveUpSnow(iCell)              * iceAreaInverse
              longwaveUpPond(iCell)              = longwaveUpPond(iCell)              * iceAreaInverse
+             longwaveUpGreybody(iCell)          = longwaveUpGreybody(iCell)          * iceAreaInverse
+             longwaveUpDominantSurface(iCell)   = longwaveUpDominantSurface(iCell)   * iceAreaInverse
              evaporativeWaterFlux(iCell)        = evaporativeWaterFlux(iCell)        * iceAreaInverse
              atmosReferenceTemperature2m(iCell) = atmosReferenceTemperature2m(iCell) * iceAreaInverse
              atmosReferenceHumidity2m(iCell)    = atmosReferenceHumidity2m(iCell)    * iceAreaInverse
@@ -5055,6 +5067,8 @@ contains
              longwaveUpIce(icell)               = 0.0_RKIND
              longwaveUpSnow(icell)              = 0.0_RKIND
              longwaveUpPond(icell)              = 0.0_RKIND
+             longwaveUpGreybody(icell)          = 0.0_RKIND
+             longwaveUpDominantSurface(icell)          = 0.0_RKIND
              evaporativeWaterFlux(iCell)        = 0.0_RKIND
              atmosReferenceTemperature2m(iCell) = airTemperature(iCell)
              atmosReferenceHumidity2m(iCell)    = airSpecificHumidity(iCell)
@@ -12225,6 +12239,8 @@ contains
          longwaveUpIce, &
          longwaveUpSnow, &
          longwaveUpPond, &
+         longwaveUpGreybody, &
+         longwaveUpDominantSurface, &
          fractionalIceCoverage, &
          fractionalSnowCoverage, &
          fractionalPondCoverage, &
@@ -12272,6 +12288,8 @@ contains
           call MPAS_pool_get_array(atmosFluxesPool, "longwaveUpIce", longwaveUpIce)
           call MPAS_pool_get_array(atmosFluxesPool, "longwaveUpSnow", longwaveUpSnow)
           call MPAS_pool_get_array(atmosFluxesPool, "longwaveUpPond", longwaveUpPond)
+          call MPAS_pool_get_array(atmosFluxesPool, "longwaveUpGreybody", longwaveUpGreybody)
+          call MPAS_pool_get_array(atmosFluxesPool, "longwaveUpDominantSurface", longwaveUpDominantSurface)
 
           call MPAS_pool_get_array(shortwavePool, "absorbedShortwaveFlux", absorbedShortwaveFlux)
           
@@ -12288,6 +12306,8 @@ contains
           longwaveUpIce(:)         = 0.0_RKIND
           longwaveUpSnow(:)        = 0.0_RKIND
           longwaveUpPond(:)        = 0.0_RKIND
+          longwaveUpGreybody(:)    = 0.0_RKIND
+          longwaveUpDominantSurface(:) = 0.0_RKIND
           
           fractionalIceCoverage(:) = 0.0_RKIND
           fractionalSnowCoverage(:) = 0.0_RKIND

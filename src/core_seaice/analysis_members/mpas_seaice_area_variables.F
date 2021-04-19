@@ -272,6 +272,8 @@ contains
            longwaveUpIceInitialArea, &
            longwaveUpSnowInitialArea, &
            longwaveUpPondInitialArea, &
+           longwaveUpGreybodyInitialArea, &
+           longwaveUpDominantSurfaceInitialArea, &
            evaporativeWaterFluxInitialArea, &
            surfaceHeatFluxInitialArea, &
            surfaceConductiveFluxInitialArea
@@ -293,6 +295,8 @@ contains
            longwaveUpIce, &
            longwaveUpSnow, &
            longwaveUpPond, &
+           longwaveUpGreybody, &
+           longwaveUpDominantSurface, &
            evaporativeWaterFlux, &
            surfaceHeatFlux, &
            surfaceConductiveFlux
@@ -423,7 +427,21 @@ contains
             do iCell = 1, nCellsSolve
                longwaveUpPondInitialArea % array(iCell) = longwaveUpPond(iCell) * iceAreaCellInitial(iCell)
             enddo ! iCell
-         endif                  
+         endif              
+         call MPAS_pool_get_field(areaVariablesAMPool, "longwaveUpGreybodyInitialArea", longwaveUpGreybodyInitialArea)
+         if (longwaveUpGreybodyInitialArea % isActive) then
+            call MPAS_pool_get_array(atmosFluxesPool, "longwaveUpGreybody", longwaveUpGreybody)
+            do iCell = 1, nCellsSolve
+               longwaveUpGreybodyInitialArea % array(iCell) = longwaveUpGreybody(iCell) * iceAreaCellInitial(iCell)
+            enddo ! iCell
+         endif 
+         call MPAS_pool_get_field(areaVariablesAMPool, "longwaveUpDominantSurfaceInitialArea", longwaveUpDominantSurfaceInitialArea)
+         if (longwaveUpDominantSurfaceInitialArea % isActive) then
+            call MPAS_pool_get_array(atmosFluxesPool, "longwaveUpDominantSurface", longwaveUpDominantSurface)
+            do iCell = 1, nCellsSolve
+               longwaveUpDominantSurfaceInitialArea % array(iCell) = longwaveUpDominantSurface(iCell) * iceAreaCellInitial(iCell)
+            enddo ! iCell
+         endif     
          ! evaporativeWaterFlux - evap
          call MPAS_pool_get_field(areaVariablesAMPool, "evaporativeWaterFluxInitialArea", evaporativeWaterFluxInitialArea)
          if (evaporativeWaterFluxInitialArea % isActive) then

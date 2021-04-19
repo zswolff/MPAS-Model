@@ -45,7 +45,9 @@
                                fsens,    flat,       & 
                                fswabs,   flwout,     &
                                flwout_ice, flwout_snow, &
-                               flwout_pond,         &
+                               flwout_pond,          &
+                               flwout_greybody,      & 
+                               flwout_dominant,      &
                                evap,                 & 
                                Tref,     Qref,       &
                                fresh,    fsalt,      & 
@@ -68,6 +70,7 @@
                                flwdrem_pond,         &
                                flwoutn_ice,          & 
                                flwoutn_snow,         & 
+                               flwoutn_greybody,     &
                                !flwoutn_pond,         &
                                Uref,     Urefn)
       
@@ -110,7 +113,8 @@
           flwdrem_pond, &
           !snowfracn, &
           flwoutn_snow, &
-          flwoutn_ice
+          flwoutn_ice,  &
+          flwoutn_greybody
           !apeffn
           
       
@@ -132,6 +136,8 @@
           flwout_ice, & ! upwd lw emitted heat flx over ice (W/m**2)
           flwout_snow, & ! upwd lw emitted heat flx over snow (W/m**2)
           flwout_pond, & ! upwd lw emitted heat flx over ponds (W/m**2)
+          flwout_greybody, &
+          flwout_dominant, &
           evap    , & ! evaporation                     (kg/m2/s)
           Tref    , & ! air tmp reference level         (K)
           Qref    , & ! air sp hum reference level      (kg/kg)
@@ -216,6 +222,13 @@
             icefrac_tot = icefrac_tot + (icefracn*aicen)
             snowfrac_tot = snowfrac_tot + (snowfracn*aicen)
             pondfrac_tot = pondfrac_tot + (apeffn*aicen)
+            if (hslyr>hs_min) then
+                flwout_dominant = flwout_dominant+ (flwout_snow_temp*aicen)
+            else
+                flwout_dominant = flwout_dominant + (flwout_ice_temp*aicen)
+            endif
+            flwout_greybody = flwout_greybody + (flwoutn_greybody-(c1-emissivity)*flw)*aicen 
+            !print *, flwoutn_greybody, flwout_dominant
             !flwout_ice_nw = flwout_ice_nw + (flwout_ice_temp*aicen)
             !flwout_snow_nw = flwout_snow_nw + (flwout_snow_temp*aicen)
             !flwout_pond_nw = flwout_pond_nw + (flwout_pond_temp*aicen)

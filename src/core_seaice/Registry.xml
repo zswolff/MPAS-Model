@@ -3715,6 +3715,8 @@
 		<var name="longwaveUpIce"				type="real"	dimensions="nCells Time"		name_in_code="longwaveUpIce"/>
 		<var name="longwaveUpSnow"				type="real"	dimensions="nCells Time"		name_in_code="longwaveUpSnow"/>
 		<var name="longwaveUpPond"				type="real"	dimensions="nCells Time"		name_in_code="longwaveUpPond"/>
+		<var name="longwaveUpGreybody"			type="real"	dimensions="nCells Time"		name_in_code="longwaveUpGreybody"/>
+		<var name="longwaveUpDominantSurface"	type="real"	dimensions="nCells Time"		name_in_code="longwaveUpDominantSurface"/>
 		<var name="sensibleHeatFlux"			type="real"	dimensions="nCells Time"		name_in_code="sensibleHeatFlux"/>
 		<var name="sensibleHeatFluxCategory"		type="real"	dimensions="nCategories nCells Time"	name_in_code="sensibleHeatFluxCategory"/>
 		<var name="latentHeatFlux"			type="real"	dimensions="nCells Time"		name_in_code="latentHeatFlux"/>
