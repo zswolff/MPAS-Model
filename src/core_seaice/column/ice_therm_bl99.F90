@@ -67,24 +67,27 @@
                                       fcondtopn,fcondbot, &
                                       einit,    l_stop,   &
                                       stop_label, &
-                                      flw1,    flw2,   & 
-                                      flw3,    flw4,   & 
-                                      flw5,    flw6,   & 
-                                      flw7,    flw8,   & 
-                                      flw9,    flw10,  & 
-                                      flw11,   flw12,  & 
-                                      flw13,   flw14,  & 
-                                      flw15,   flw16,  & 
-                                      flwoutn1, flwoutn2, &
-                                      flwoutn3, flwoutn4, &
-                                      flwoutn5, flwoutn6, &
-                                      flwoutn7, flwoutn8, &
-                                      flwoutn9, flwoutn10, &
-                                      flwoutn11, flwoutn12, &
-                                      flwoutn13, flwoutn14, &
-                                      flwoutn15, flwoutn16)
+                                      flw_ice_abs_bnds,     &  
+                                      flw_snow_abs_bnds)
+                                      !flw1,    flw2,   & 
+                                      !flw3,    flw4,   & 
+                                      !flw5,    flw6,   & 
+                                      !flw7,    flw8,   & 
+                                      !flw9,    flw10,  & 
+                                      !flw11,   flw12,  & 
+                                      !flw13,   flw14,  & 
+                                      !flw15,   flw16,  & 
+                                      !flwoutn1, flwoutn2, &
+                                      !flwoutn3, flwoutn4, &
+                                      !flwoutn5, flwoutn6, &
+                                      !flwoutn7, flwoutn8, &
+                                      !flwoutn9, flwoutn10, &
+                                      !flwoutn11, flwoutn12, &
+                                      !flwoutn13, flwoutn14, &
+                                      !flwoutn15, flwoutn16)
 
       use ice_therm_shared, only: surface_heat_flux, dsurface_heat_flux_dTsf
+      use ice_constants_colpkg
 
       integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
@@ -103,24 +106,27 @@
          lhcoef      , & ! transfer coefficient for latent heat
          Tbot            ! ice bottom surface temperature (deg C)
 
-      real (kind=dbl_kind), &
-         intent(in), optional :: &        
-         flw1        , & ! incoming longwave radiation band 1 (W/m^2)
-         flw2        , & ! incoming longwave radiation band 2 (W/m^2)
-         flw3        , & ! incoming longwave radiation band 3 (W/m^2)
-         flw4        , & ! incoming longwave radiation band 4 (W/m^2)
-         flw5        , & ! incoming longwave radiation band 5 (W/m^2)
-         flw6        , & ! incoming longwave radiation band 6 (W/m^2)
-         flw7        , & ! incoming longwave radiation band 7 (W/m^2)
-         flw8        , & ! incoming longwave radiation band 8 (W/m^2)
-         flw9        , & ! incoming longwave radiation band 9 (W/m^2)
-         flw10       , & ! incoming longwave radiation band 10 (W/m^2)
-         flw11       , & ! incoming longwave radiation band 11 (W/m^2)
-         flw12       , & ! incoming longwave radiation band 12 (W/m^2)
-         flw13       , & ! incoming longwave radiation band 13 (W/m^2)
-         flw14       , & ! incoming longwave radiation band 14 (W/m^2)
-         flw15       , & ! incoming longwave radiation band 15 (W/m^2)
-         flw16           ! incoming longwave radiation band 16 (W/m^2)
+      real (kind=dbl_kind), intent(in), dimension(lw_nbd), optional :: &
+         flw_ice_abs_bnds, &
+         flw_snow_abs_bnds
+      !real (kind=dbl_kind), &
+         !intent(in), optional :: &        
+         !flw1        , & ! incoming longwave radiation band 1 (W/m^2)
+         !flw2        , & ! incoming longwave radiation band 2 (W/m^2)
+         !flw3        , & ! incoming longwave radiation band 3 (W/m^2)
+         !flw4        , & ! incoming longwave radiation band 4 (W/m^2)
+         !flw5        , & ! incoming longwave radiation band 5 (W/m^2)
+         !flw6        , & ! incoming longwave radiation band 6 (W/m^2)
+         !flw7        , & ! incoming longwave radiation band 7 (W/m^2)
+         !flw8        , & ! incoming longwave radiation band 8 (W/m^2)
+         !flw9        , & ! incoming longwave radiation band 9 (W/m^2)
+         !flw10       , & ! incoming longwave radiation band 10 (W/m^2)
+         !flw11       , & ! incoming longwave radiation band 11 (W/m^2)
+         !flw12       , & ! incoming longwave radiation band 12 (W/m^2)
+         !flw13       , & ! incoming longwave radiation band 13 (W/m^2)
+         !flw14       , & ! incoming longwave radiation band 14 (W/m^2)
+         !flw15       , & ! incoming longwave radiation band 15 (W/m^2)
+         !flw16           ! incoming longwave radiation band 16 (W/m^2)
       real (kind=dbl_kind), intent(inout) :: &
          fswsfc        , & ! SW absorbed at ice/snow surface (W m-2)
          fswint          ! SW absorbed in ice interior below surface (W m-2)
@@ -144,23 +150,23 @@
          fsensn      , & ! surface downward sensible heat (W m-2)
          flatn       , & ! surface downward latent heat (W m-2)
          flwoutn         ! upward LW at surface (W m-2)
-      real (kind=dbl_kind), intent(inout), optional :: &         
-         flwoutn1,     & ! upward LW at surface band 1 (W m-2)
-         flwoutn2,     & ! upward LW at surface band 2 (W m-2)
-         flwoutn3,     & ! upward LW at surface band 3 (W m-2)
-         flwoutn4,     & ! upward LW at surface band 4 (W m-2)
-         flwoutn5,     & ! upward LW at surface band 5 (W m-2)
-         flwoutn6,     & ! upward LW at surface band 6 (W m-2)
-         flwoutn7,     & ! upward LW at surface band 7 (W m-2)
-         flwoutn8,     & ! upward LW at surface band 8 (W m-2)
-         flwoutn9,     & ! upward LW at surface band 9 (W m-2)
-         flwoutn10,    & ! upward LW at surface band 10 (W m-2)
-         flwoutn11,    & ! upward LW at surface band 11 (W m-2)
-         flwoutn12,    & ! upward LW at surface band 12 (W m-2)
-         flwoutn13,    & ! upward LW at surface band 13 (W m-2)
-         flwoutn14,    & ! upward LW at surface band 14 (W m-2)
-         flwoutn15,    & ! upward LW at surface band 15 (W m-2)
-         flwoutn16       ! upward LW at surface band 16 (W m-2)
+      !real (kind=dbl_kind), intent(inout), optional :: &         
+      !   flwoutn1,     & ! upward LW at surface band 1 (W m-2)
+      !   flwoutn2,     & ! upward LW at surface band 2 (W m-2)
+      !   flwoutn3,     & ! upward LW at surface band 3 (W m-2)
+      !   flwoutn4,     & ! upward LW at surface band 4 (W m-2)
+      !   flwoutn5,     & ! upward LW at surface band 5 (W m-2)
+      !   flwoutn6,     & ! upward LW at surface band 6 (W m-2)
+      !   flwoutn7,     & ! upward LW at surface band 7 (W m-2)
+      !   flwoutn8,     & ! upward LW at surface band 8 (W m-2)
+      !   flwoutn9,     & ! upward LW at surface band 9 (W m-2)
+      !   flwoutn10,    & ! upward LW at surface band 10 (W m-2)
+      !   flwoutn11,    & ! upward LW at surface band 11 (W m-2)
+      !   flwoutn12,    & ! upward LW at surface band 12 (W m-2)
+      !   flwoutn13,    & ! upward LW at surface band 13 (W m-2)
+      !   flwoutn14,    & ! upward LW at surface band 14 (W m-2)
+      !   flwoutn15,    & ! upward LW at surface band 15 (W m-2)
+      !   flwoutn16       ! upward LW at surface band 16 (W m-2)
 
       real (kind=dbl_kind), intent(out):: &
          fcondbot        ! downward cond flux at bottom surface (W m-2)
@@ -224,7 +230,11 @@
          dt_rhoi_hlyr, & ! dt/(rhoi*hilyr)
          einex       , & ! excess energy from dqmat to ocean
          ferr            ! energy conservation error (W m-2)
-
+      
+      real (kind= dbl_kind), dimension(lw_nbd) :: &
+        flwoutn_bnds, & 
+        flwoutn_bnds_sfc_type
+      
       real (kind=dbl_kind), dimension (nilyr) :: &
          Tin_init    , & ! zTin at beginning of time step
          Tin_start   , & ! zTin at start of iteration
@@ -440,22 +450,26 @@
                                       fsensn,          &
                                       flatn  , fsurfn, &
                                       l_snow, &
-                                      flw1,    flw2,   & 
-                                      flw3,    flw4,   & 
-                                      flw5,    flw6,   & 
-                                      flw7,    flw8,   & 
-                                      flw9,    flw10,  & 
-                                      flw11,   flw12,  & 
-                                      flw13,   flw14,  & 
-                                      flw15,   flw16,  & 
-                                      flwoutn1, flwoutn2,& 
-                                      flwoutn3, flwoutn4,& 
-                                      flwoutn5, flwoutn6,& 
-                                      flwoutn7, flwoutn8,& 
-                                      flwoutn9, flwoutn10,& 
-                                      flwoutn11, flwoutn12,& 
-                                      flwoutn13, flwoutn14,& 
-                                      flwoutn15, flwoutn16)
+                                      flw_ice_abs_bnds,&
+                                      flw_snow_abs_bnds, &
+                                      flwoutn_bnds, &
+                                      flwoutn_bnds_sfc_type)
+                                      !flw1,    flw2,   & 
+                                      !flw3,    flw4,   & 
+                                      !flw5,    flw6,   & 
+                                      !flw7,    flw8,   & 
+                                      !flw9,    flw10,  & 
+                                      !flw11,   flw12,  & 
+                                      !flw13,   flw14,  & 
+                                      !flw15,   flw16,  & 
+                                      !flwoutn1, flwoutn2,& 
+                                      !flwoutn3, flwoutn4,& 
+                                      !flwoutn5, flwoutn6,& 
+                                      !flwoutn7, flwoutn8,& 
+                                      !flwoutn9, flwoutn10,& 
+                                      !flwoutn11, flwoutn12,& 
+                                      !flwoutn13, flwoutn14,& 
+                                      !flwoutn15, flwoutn16)
 
                ! derivative of heat flux with respect to surface temperature
                call dsurface_heat_flux_dTsf(Tsf      , fswsfc    , &
@@ -466,15 +480,16 @@
                                             dfsurf_dT, dflwout_dT, &
                                             dfsens_dT, dflat_dT, &
                                             l_snow, &
-                                            flwoutn1,     &
-                                            flwoutn2, flwoutn3,    &
-                                            flwoutn4, flwoutn5,    &
-                                            flwoutn6, flwoutn7,    &
-                                            flwoutn8, flwoutn9,    &
-                                            flwoutn10, flwoutn11,  &
-                                            flwoutn12, flwoutn13,  &
-                                            flwoutn14, flwoutn15,  &
-                                            flwoutn16)
+                                            flwoutn_bnds_sfc_type)
+                                            !flwoutn1,     &
+                                            !flwoutn2, flwoutn3,    &
+                                            !flwoutn4, flwoutn5,    &
+                                            !flwoutn6, flwoutn7,    &
+                                            !flwoutn8, flwoutn9,    &
+                                            !flwoutn10, flwoutn11,  &
+                                            !flwoutn12, flwoutn13,  &
+                                            !flwoutn14, flwoutn15,  &
+                                            !flwoutn16)
 
       !-----------------------------------------------------------------
       ! Compute conductive flux at top surface, fcondtopn.
@@ -1009,28 +1024,35 @@
                                  dflwout_dT, dfsens_dT,         &
                                  dflat_dT,   dfsurf_dT,         &
                                  l_snow,                        &
-                                 flw1,       flw2,              & 
-                                 flw3,       flw4,              & 
-                                 flw5,       flw6,              & 
-                                 flw7,       flw8,              &    
-                                 flw9,       flw10,             & 
-                                 flw11,      flw12,             & 
-                                 flw13,      flw14,             & 
-                                 flw15,      flw16,             & 
-                                 flwoutn1,  flwoutn2,           & 
-                                 flwoutn3,  flwoutn4,           & 
-                                 flwoutn5,  flwoutn6,           & 
-                                 flwoutn7,  flwoutn8,           & 
-                                 flwoutn9,  flwoutn10,          & 
-                                 flwoutn11, flwoutn12,          & 
-                                 flwoutn13, flwoutn14,          & 
-                                 flwoutn15, flwoutn16)
+                                 flw_ice_abs_bnds,              &
+                                 flw_snow_abs_bnds)
+                                 !flw1,       flw2,              & 
+                                 !flw3,       flw4,              & 
+                                 !flw5,       flw6,              & 
+                                 !flw7,       flw8,              &    
+                                 !flw9,       flw10,             & 
+                                 !flw11,      flw12,             & 
+                                 !flw13,      flw14,             & 
+                                 !flw15,      flw16,             & 
+                                 !flwoutn1,  flwoutn2,           & 
+                                 !flwoutn3,  flwoutn4,           & 
+                                 !flwoutn5,  flwoutn6,           & 
+                                 !flwoutn7,  flwoutn8,           & 
+                                 !flwoutn9,  flwoutn10,          & 
+                                 !flwoutn11, flwoutn12,          & 
+                                 !flwoutn13, flwoutn14,          & 
+                                 !flwoutn15, flwoutn16)
 
       use ice_therm_shared, only: surface_heat_flux, dsurface_heat_flux_dTsf
-
+      use ice_constants_colpkg
       real (kind=dbl_kind), intent(in) :: &
          Tsf             ! ice/snow surface temperature, Tsfcn
 
+      
+      real (kind=dbl_kind), intent(in), dimension(lw_nbd), optional :: &
+         flw_ice_abs_bnds, &
+         flw_snow_abs_bnds
+         
       real (kind=dbl_kind), intent(in) :: &
          fswsfc      , & ! SW absorbed at ice/snow surface (W m-2)
          rhoa        , & ! air density (kg/m^3)
@@ -1039,23 +1061,23 @@
          Qa          , & ! specific humidity (kg/kg)
          shcoef      , & ! transfer coefficient for sensible heat
          lhcoef          ! transfer coefficient for latent heat
-      real (kind=dbl_kind), intent(in), optional :: &         
-         flw1        , & ! incoming longwave radiation band 1 (W/m^2)
-         flw2        , & ! incoming longwave radiation band 2 (W/m^2)
-         flw3        , & ! incoming longwave radiation band 3 (W/m^2)
-         flw4        , & ! incoming longwave radiation band 4 (W/m^2)
-         flw5        , & ! incoming longwave radiation band 5 (W/m^2)
-         flw6        , & ! incoming longwave radiation band 6 (W/m^2)
-         flw7        , & ! incoming longwave radiation band 7 (W/m^2)
-         flw8        , & ! incoming longwave radiation band 8 (W/m^2)
-         flw9        , & ! incoming longwave radiation band 9 (W/m^2)
-         flw10       , & ! incoming longwave radiation band 10 (W/m^2)
-         flw11       , & ! incoming longwave radiation band 11 (W/m^2)
-         flw12       , & ! incoming longwave radiation band 12 (W/m^2)
-         flw13       , & ! incoming longwave radiation band 13 (W/m^2)
-         flw14       , & ! incoming longwave radiation band 14 (W/m^2)
-         flw15       , & ! incoming longwave radiation band 15 (W/m^2)
-         flw16           ! incoming longwave radiation band 16 (W/m^2)
+      !real (kind=dbl_kind), intent(in), optional :: &         
+         !flw1        , & ! incoming longwave radiation band 1 (W/m^2)
+         !flw2        , & ! incoming longwave radiation band 2 (W/m^2)
+         !flw3        , & ! incoming longwave radiation band 3 (W/m^2)
+         !flw4        , & ! incoming longwave radiation band 4 (W/m^2)
+         !flw5        , & ! incoming longwave radiation band 5 (W/m^2)
+         !flw6        , & ! incoming longwave radiation band 6 (W/m^2)
+         !flw7        , & ! incoming longwave radiation band 7 (W/m^2)
+         !flw8        , & ! incoming longwave radiation band 8 (W/m^2)
+         !flw9        , & ! incoming longwave radiation band 9 (W/m^2)
+         !flw10       , & ! incoming longwave radiation band 10 (W/m^2)
+         !flw11       , & ! incoming longwave radiation band 11 (W/m^2)
+         !flw12       , & ! incoming longwave radiation band 12 (W/m^2)
+         !flw13       , & ! incoming longwave radiation band 13 (W/m^2)
+         !flw14       , & ! incoming longwave radiation band 14 (W/m^2)
+         !flw15       , & ! incoming longwave radiation band 15 (W/m^2)
+         !flw16           ! incoming longwave radiation band 16 (W/m^2)
       
       logical (kind=log_kind), intent (in) :: &
          l_snow 
@@ -1066,25 +1088,25 @@
          flatn       , & ! surface downward latent heat (W m-2)
          flwoutn     , & ! upward LW at surface (W m-2)
          fsurfn          ! net flux to top surface, excluding fcondtopn
-      real (kind=dbl_kind), &
-         intent(inout), optional :: &         
-         flwoutn1,     & ! upward LW at surface band 1 (W m-2)
-         flwoutn2,     & ! upward LW at surface band 2 (W m-2)
-         flwoutn3,     & ! upward LW at surface band 3 (W m-2)
-         flwoutn4,     & ! upward LW at surface band 4 (W m-2)
-         flwoutn5,     & ! upward LW at surface band 5 (W m-2)
-         flwoutn6,     & ! upward LW at surface band 6 (W m-2)
-         flwoutn7,     & ! upward LW at surface band 7 (W m-2)
-         flwoutn8,     & ! upward LW at surface band 8 (W m-2)
-         flwoutn9,     & ! upward LW at surface band 9 (W m-2)
-         flwoutn10,    & ! upward LW at surface band 10 (W m-2)
-         flwoutn11,    & ! upward LW at surface band 11 (W m-2)
-         flwoutn12,    & ! upward LW at surface band 12 (W m-2)
-         flwoutn13,    & ! upward LW at surface band 13 (W m-2)
-         flwoutn14,    & ! upward LW at surface band 14 (W m-2)
-         flwoutn15,    & ! upward LW at surface band 15 (W m-2)
-         flwoutn16      ! upward LW at surface band 16 (W m-2)
-
+      !real (kind=dbl_kind), &
+         !intent(inout), optional :: &         
+         !flwoutn1,     & ! upward LW at surface band 1 (W m-2)
+         !flwoutn2,     & ! upward LW at surface band 2 (W m-2)
+         !flwoutn3,     & ! upward LW at surface band 3 (W m-2)
+         !flwoutn4,     & ! upward LW at surface band 4 (W m-2)
+         !flwoutn5,     & ! upward LW at surface band 5 (W m-2)
+         !flwoutn6,     & ! upward LW at surface band 6 (W m-2)
+         !flwoutn7,     & ! upward LW at surface band 7 (W m-2)
+         !flwoutn8,     & ! upward LW at surface band 8 (W m-2)
+         !flwoutn9,     & ! upward LW at surface band 9 (W m-2)
+         !flwoutn10,    & ! upward LW at surface band 10 (W m-2)
+         !flwoutn11,    & ! upward LW at surface band 11 (W m-2)
+         !flwoutn12,    & ! upward LW at surface band 12 (W m-2)
+         !flwoutn13,    & ! upward LW at surface band 13 (W m-2)
+         !flwoutn14,    & ! upward LW at surface band 14 (W m-2)
+         !flwoutn15,    & ! upward LW at surface band 15 (W m-2)
+         !flwoutn16      ! upward LW at surface band 16 (W m-2)
+        
       real (kind=dbl_kind), &
          intent(inout) :: &
          dfsens_dT   , & ! deriv of fsens wrt Tsf (W m-2 deg-1)
@@ -1094,6 +1116,10 @@
       real (kind=dbl_kind), &
          intent(inout) :: &
          dfsurf_dT       ! derivative of fsurfn wrt Tsf
+    
+      real (kind=dbl_kind), dimension(lw_nbd) :: &
+          flwoutn_bnds, &
+          flwoutn_bnds_sfc_type
 
       ! surface heat flux
       call surface_heat_flux(Tsf,     fswsfc, &
@@ -1104,22 +1130,26 @@
                              fsensn, &
                              flatn,   fsurfn, &
                              l_snow, &
-                             flw1,    flw2,   & 
-                             flw3,    flw4,   & 
-                             flw5,    flw6,   & 
-                             flw7,    flw8,   & 
-                             flw9,    flw10,  & 
-                             flw11,   flw12,  & 
-                             flw13,   flw14,  & 
-                             flw15,   flw16,  & 
-                             flwoutn1, flwoutn2,& 
-                             flwoutn3, flwoutn4,& 
-                             flwoutn5, flwoutn6,& 
-                             flwoutn7, flwoutn8,& 
-                             flwoutn9, flwoutn10,& 
-                             flwoutn11, flwoutn12,& 
-                             flwoutn13, flwoutn14,& 
-                             flwoutn15, flwoutn16)
+                             flw_ice_abs_bnds,&
+                             flw_snow_abs_bnds, &
+                             flwoutn_bnds, &
+                             flwoutn_bnds_sfc_type)
+                             !flw1,    flw2,   & 
+                             !flw3,    flw4,   & 
+                             !flw5,    flw6,   & 
+                             !flw7,    flw8,   & 
+                             !flw9,    flw10,  & 
+                             !flw11,   flw12,  & 
+                             !flw13,   flw14,  & 
+                             !flw15,   flw16,  & 
+                             !flwoutn1, flwoutn2,& 
+                             !flwoutn3, flwoutn4,& 
+                             !flwoutn5, flwoutn6,& 
+                             !flwoutn7, flwoutn8,& 
+                             !flwoutn9, flwoutn10,& 
+                             !flwoutn11, flwoutn12,& 
+                             !flwoutn13, flwoutn14,& 
+                             !flwoutn15, flwoutn16)
 
       ! derivative of heat flux with respect to surface temperature
       call dsurface_heat_flux_dTsf(Tsf,       fswsfc,     &
@@ -1130,15 +1160,16 @@
                                    dfsurf_dT, dflwout_dT, &
                                    dfsens_dT, dflat_dT, &
                                    l_snow,     &
-                                   flwoutn1,     &
-                                   flwoutn2, flwoutn3,    &
-                                   flwoutn4, flwoutn5,    &
-                                   flwoutn6, flwoutn7,    &
-                                   flwoutn8, flwoutn9,    &
-                                   flwoutn10, flwoutn11,  &
-                                   flwoutn12, flwoutn13,  &
-                                   flwoutn14, flwoutn15,  &
-                                   flwoutn16)
+                                   flwoutn_bnds_sfc_type)
+                                   !flwoutn1,     &
+                                   !flwoutn2, flwoutn3,    &
+                                   !flwoutn4, flwoutn5,    &
+                                   !flwoutn6, flwoutn7,    &
+                                   !flwoutn8, flwoutn9,    &
+                                   !flwoutn10, flwoutn11,  &
+                                   !flwoutn12, flwoutn13,  &
+                                   !flwoutn14, flwoutn15,  &
+                                   !flwoutn16)
 
       end subroutine surface_fluxes
 

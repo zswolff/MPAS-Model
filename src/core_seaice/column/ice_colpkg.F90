@@ -331,9 +331,10 @@
       subroutine colpkg_init_thermo(nilyr, sprofile)
 
       use ice_colpkg_shared, only: saltmax, ktherm, heat_capacity, &
-          min_salin
-      use ice_constants_colpkg, only: p5, c0, c1, c2, pi
-      use ice_therm_shared, only: l_brine
+          min_salin, Pond_flux, longwave
+      use ice_constants_colpkg, only: p5, c0, c1, c2, pi, Tffresh, lw_nbd
+      use ice_therm_shared, only: l_brine, rrtmg_longwave_flux, rrtmgp_longwave_flux, &
+          longwave_emitted
 
       integer (kind=int_kind), intent(in) :: &
          nilyr                            ! number of ice layers
@@ -347,7 +348,10 @@
 
       integer (kind=int_kind) :: k        ! ice layer index
       real (kind=dbl_kind)    :: zn       ! normalized ice thickness
-
+      
+      real (kind=dbl_kind), dimension(lw_nbd) :: & 
+           flwoutn_bnds, &
+           flwoutn_pond_bnds
       !-----------------------------------------------------------------
       ! Determine l_brine based on saltmax.
       ! Thermodynamic solver will not converge if l_brine is true and
@@ -380,7 +384,17 @@
             sprofile(k) = c0
          enddo
       endif ! l_brine
-
+      if (longwave == 'rrtmg') then
+         call rrtmg_longwave_flux(Tffresh, flwoutn_bnds)
+         call longwave_emitted(flwoutn_bnds,'pond', &
+                               flwoutn_pond_bnds)
+         Pond_flux = SUM(flwoutn_pond_bnds)
+      else if (longwave == 'rrtmgp') then
+         call rrtmgp_longwave_flux(Tffresh, flwoutn_bnds)
+         call longwave_emitted(flwoutn_bnds,'pond', &
+                               flwoutn_pond_bnds)
+         Pond_flux = SUM(flwoutn_pond_bnds)  
+      endif                 
       end subroutine colpkg_init_thermo
 
 !=======================================================================
@@ -1818,14 +1832,14 @@
       use ice_atmo, only: neutral_drag_coeffs
       use ice_age, only: increment_age
       use ice_constants_colpkg, only: rhofresh, rhoi, rhos, c0, c1, puny, &
-          snwlvlfac, stefan_boltzmann
+          snwlvlfac, stefan_boltzmann, lw_nbd
       use ice_firstyear, only: update_FYarea
       use ice_flux_colpkg, only: set_sfcflux, merge_fluxes
       use ice_meltpond_cesm, only: compute_ponds_cesm
       use ice_meltpond_lvl, only: compute_ponds_lvl
       use ice_meltpond_topo, only: compute_ponds_topo
       use ice_snow, only: drain_snow
-      use ice_therm_shared, only: hi_min, rrtmg_longwave_flux, rrtmgp_longwave_flux, longwave_re_emitted_flux
+      use ice_therm_shared, only: hi_min, rrtmg_longwave_flux, rrtmgp_longwave_flux, longwave_absorbed_reemit_flux
       use ice_therm_vertical, only: frzmlt_bottom_lateral, thermo_vertical
       use ice_colpkg_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, &
           tr_pond_cesm, tr_pond_lvl, tr_pond_topo, tr_snow, tr_rsnw
@@ -2022,22 +2036,22 @@
          lhcoef      , & ! transfer coefficient for latent heat
          rfrac           ! water fraction retained for melt ponds
       real (kind=dbl_kind) :: &
-         flw1, &
-         flw2, &
-         flw3, &
-         flw4, &
-         flw5, &
-         flw6, &
-         flw7, &
-         flw8, &
-         flw9, &
-         flw10, &
-         flw11, &
-         flw12, &
-         flw13, &
-         flw14, &
-         flw15, &
-         flw16, & 
+         !flw1, &
+         !flw2, &
+         !flw3, &
+         !flw4, &
+         !flw5, &
+         !flw6, &
+         !flw7, &
+         !flw8, &
+         !flw9, &
+         !flw10, &
+         !flw11, &
+         !flw12, &
+         !flw13, &
+         !flw14, &
+         !flw15, &
+         !flw16, & 
          flwnew, &
          flwdrem_ice , &
          flwdrem_snow, & 
@@ -2048,7 +2062,13 @@
          flwoutn_snow, &
          flwoutn_greybody
          
-         
+      real(kind=dbl_kind),dimension(lw_nbd) :: & 
+         flw_bnds,          &
+         flw_ice_abs_bnds,  &
+         flw_snow_abs_bnds, &
+         flw_ice_rem_bnds,  &
+         flw_snow_rem_bnds, &
+         flw_pond_rem_bnds  
       real (kind=dbl_kind) :: &
          raice       , & ! 1/aice
          pond        , & ! water retained in ponds (m)
@@ -2141,47 +2161,72 @@
          
          if (longwave== 'rrtmg') then 
             T_eq= (flw/stefan_boltzmann)**0.25
-            call rrtmg_longwave_flux(T_eq,   flw1, &
-                                     flw2,   flw3, & 
-                                     flw4,   flw5, &  
-                                     flw6,   flw7, &  
-                                     flw8,   flw9, &     
-                                     flw10,  flw11,&  
-                                     flw12,  flw13,&  
-                                     flw14,  flw15,&  
-                                     flw16)
-             call longwave_re_emitted_flux(flw1, flw2,  &
-                                    flw3, flw4,  &
-                                    flw5, flw6,  &
-                                    flw7, flw8,  &
-                                    flw9, flw10, &
-                                    flw11,flw12, &
-                                    flw13, flw14, &
-                                    flw16, flw16, &
-                                    flwdrem_ice, flwdrem_snow, &
-                                    flwdrem_pond) 
+            call rrtmg_longwave_flux(T_eq, flw_bnds)
+            call longwave_absorbed_reemit_flux(flw_bnds, &
+                                          flw_ice_abs_bnds, &
+                                          flw_snow_abs_bnds, &
+                                          flw_ice_rem_bnds, &
+                                          flw_snow_rem_bnds, &
+                                          flw_pond_rem_bnds) 
+           
+            
+            flwdrem_ice = SUM(flw_ice_rem_bnds)
+            flwdrem_snow = SUM(flw_snow_rem_bnds)
+            flwdrem_pond = SUM(flw_pond_rem_bnds)
+                     
+            !call rrtmg_longwave_flux(T_eq,   flw1, &
+            !                         flw2,   flw3, & 
+            !                         flw4,   flw5, &  
+            !                         flw6,   flw7, &  
+            !                         flw8,   flw9, &     
+            !                         flw10,  flw11,&  
+            !                         flw12,  flw13,&  
+            !                         flw14,  flw15,&  
+            !                         flw16)
+            ! call longwave_re_emitted_flux(flw1, flw2,  &
+            !                        flw3, flw4,  &
+            !                        flw5, flw6,  &
+            !                        flw7, flw8,  &
+            !                        flw9, flw10, &
+            !                        flw11,flw12, &
+            !                        flw13, flw14, &
+            !                        flw16, flw16, &
+            !                        flwdrem_ice, flwdrem_snow, &
+            !                        flwdrem_pond) 
          
           else if (longwave== 'rrtmgp') then 
             T_eq= (flw/stefan_boltzmann)**0.25
-            call rrtmgp_longwave_flux(T_eq,   flw1, &
-                                     flw2,   flw3, & 
-                                     flw4,   flw5, &  
-                                     flw6,   flw7, &  
-                                     flw8,   flw9, &     
-                                     flw10,  flw11,&  
-                                     flw12,  flw13,&  
-                                     flw14,  flw15,&  
-                                     flw16)
-             call longwave_re_emitted_flux(flw1, flw2,  &
-                                    flw3, flw4,  &
-                                    flw5, flw6,  &
-                                    flw7, flw8,  &
-                                    flw9, flw10, &
-                                    flw11,flw12, &
-                                    flw13, flw14, &
-                                    flw16, flw16, &
-                                    flwdrem_ice, flwdrem_snow,&
-                                    flwdrem_pond) 
+            call rrtmgp_longwave_flux(T_eq, flw_bnds)
+            call longwave_absorbed_reemit_flux(flw_bnds, &
+                                          flw_ice_abs_bnds, &
+                                          flw_snow_abs_bnds, &
+                                          flw_ice_rem_bnds, &
+                                          flw_snow_rem_bnds, &
+                                          flw_pond_rem_bnds) 
+           
+            
+            flwdrem_ice = SUM(flw_ice_rem_bnds)
+            flwdrem_snow = SUM(flw_snow_rem_bnds)
+            flwdrem_pond = SUM(flw_pond_rem_bnds)
+            !call rrtmgp_longwave_flux(T_eq,   flw1, &
+            !                         flw2,   flw3, & 
+            !                         flw4,   flw5, &  
+            !                         flw6,   flw7, &  
+            !                         flw8,   flw9, &     
+            !                         flw10,  flw11,&  
+            !                         flw12,  flw13,&  
+            !                         flw14,  flw15,&  
+            !                         flw16)
+             !call longwave_re_emitted_flux(flw1, flw2,  &
+             !                       flw3, flw4,  &
+             !                       flw5, flw6,  &
+             !                       flw7, flw8,  &
+             !                       flw9, flw10, &
+             !                       flw11,flw12, &
+             !                       flw13, flw14, &
+             !                       flw16, flw16, &
+             !                       flwdrem_ice, flwdrem_snow,&
+             !                       flwdrem_pond) 
          
          endif 
          if (aicen_init(n) > puny) then
@@ -2289,15 +2334,17 @@
                                  tr_rsnw,                    &
                                  l_stop,       stop_label,   &
                                  prescribed_ice,             &
-                                 flw1,                       &
-                                 flw2,         flw3,         &
-                                 flw4,         flw5,         &
-                                 flw6,         flw7,         &
-                                 flw8,         flw9,         &
-                                 flw10,        flw11,        &
-                                 flw12,        flw13,        &
-                                 flw14,        flw15,        & 
-                                 flw16, &
+                                 flw_ice_abs_bnds,           &
+                                 flw_snow_abs_bnds,          &
+                                 !flw1,                       &
+                                 !flw2,         flw3,         &
+                                 !flw4,         flw5,         &
+                                 !flw6,         flw7,         &
+                                 !flw8,         flw9,         &
+                                 !flw10,        flw11,        &
+                                 !flw12,        flw13,        &
+                                 !flw14,        flw15,        & 
+                                 !flw16, &
                                  flwoutn_ice, flwoutn_snow, &
                                  flwoutn_greybody)
                                 

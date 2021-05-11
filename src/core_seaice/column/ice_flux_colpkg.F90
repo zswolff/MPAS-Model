@@ -75,7 +75,7 @@
                                Uref,     Urefn)
       
       use ice_constants_colpkg
-      use ice_colpkg_shared, only: longwave, use_subgridscale
+      use ice_colpkg_shared, only: longwave, use_subgridscale, Pond_flux
       use ice_warnings, only: add_warning
       !use ice_domain_size, only: max_ntrcr, nslyr
       ! single category fluxes
@@ -211,7 +211,7 @@
       !     + (flwoutn - (c1-emissivity)*flw) * aicen
       hslyr = ((vsnon/aicen)/real(nslyr))
       if (longwave == 'rrtmg' .or. longwave== 'rrtmgp') then           
-          !print *, apeffn, snowfracn, icefracn 
+          print *, flwdrem_snow
           if (use_subgridscale) then
             flwout_ice_temp = (flwoutn_ice-flwdrem_ice)
             flwout_snow_temp = (flwoutn_snow-flwdrem_snow)

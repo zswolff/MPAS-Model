@@ -26,7 +26,7 @@
          rhow      = SHR_CONST_RHOSW  ,&! density of seawater (kg/m^3)
          cp_air    = SHR_CONST_CPDAIR ,&! specific heat of air (J/kg/K)
          ! (Briegleb JGR 97 11475-11485  July 1992)
-         emissivity=1.0_dbl_kind    ,&! emissivity of snow and ice
+         emissivity=0.95_dbl_kind    ,&! emissivity of snow and ice
          cp_ice    = SHR_CONST_CPICE  ,&! specific heat of fresh ice (J/kg/K)
          cp_ocn    = SHR_CONST_CPSW   ,&! specific heat of ocn    (J/kg/K)
                                         ! freshwater value needed for enthalpy
@@ -217,7 +217,23 @@
         wvn2_gp = 250.0_dbl_kind,&
         wvn15_gp = 2390.0_dbl_kind, &
         wvn16_gp = 2680.0_dbl_kind
-
+        
+       real (kind=dbl_kind), dimension(17), parameter, public :: &
+         wvn_rrtmg = (/ wvn1, wvn2, & 
+                        wvn3,   &
+                        wvn4, wvn5, wvn6,   &
+                        wvn7, wvn8, wvn9,   &
+                        wvn10, wvn11, wvn12, &
+                        wvn13, wvn14, wvn15,&
+                        wvn16, wvn17 /), &
+         wvn_rrtmgp = (/ wvn1, wvn2_gp, & 
+                        wvn3,   &
+                        wvn4, wvn5, wvn6,   &
+                        wvn7, wvn8, wvn9,   &
+                        wvn10, wvn11, wvn12, &
+                        wvn13, wvn14, wvn15_gp,&
+                        wvn16_gp, wvn17 /)      
+                        
        real (kind=dbl_kind), dimension(16), parameter, public :: & 
         ice_emissivity_rrtmg = (/ emissivity_ice1, emissivity_ice2, & 
                             emissivity_ice3,   &
@@ -227,12 +243,12 @@
                             emissivity_ice13, emissivity_ice14, emissivity_ice15,&
                             emissivity_ice16 /), &
                          
-       ice_emissivity_rrtmgp = (/ emissivity_ice1, emissivity_ice2, emissivity_ice3, &
+       ice_emissivity_rrtmgp = (/ emissivity_ice1_gp, emissivity_ice2_gp, emissivity_ice3, &
                          emissivity_ice4, emissivity_ice5, emissivity_ice6,   &
                          emissivity_ice7, emissivity_ice8, emissivity_ice9,   &
                          emissivity_ice10, emissivity_ice11, emissivity_ice12, &
-                         emissivity_ice13, emissivity_ice14, emissivity_ice15, &
-                         emissivity_ice16 /), &
+                         emissivity_ice13, emissivity_ice14, emissivity_ice15_gp, &
+                         emissivity_ice16_gp /), &
                          
        snow_emissivity_rrtmg = (/ emissivity_snow1, emissivity_snow2, emissivity_snow3, &
                          emissivity_snow4, emissivity_snow5, emissivity_snow6,   &
@@ -241,12 +257,12 @@
                          emissivity_snow13, emissivity_snow14, emissivity_snow15, &
                          emissivity_snow16 /), &
                          
-       snow_emissivity_rrtmgp = (/ emissivity_snow1, emissivity_snow2, emissivity_snow3, &
+       snow_emissivity_rrtmgp = (/ emissivity_snow1_gp, emissivity_snow2_gp, emissivity_snow3, &
                          emissivity_snow4, emissivity_snow5, emissivity_snow6,   &
                          emissivity_snow7, emissivity_snow8, emissivity_snow9,   &
                          emissivity_snow10, emissivity_snow11, emissivity_snow12, &
-                         emissivity_snow13, emissivity_snow14, emissivity_snow15, &
-                         emissivity_snow16 /), &
+                         emissivity_snow13, emissivity_snow14, emissivity_snow15_gp, &
+                         emissivity_snow16_gp /), &
       emisivitiy_pond = (/ emissivity_pond1, emissivity_pond2, emissivity_pond3, &
                          emissivity_pond4, emissivity_pond5, emissivity_pond6,   &
                          emissivity_pond7, emissivity_pond8, emissivity_pond9,   &
@@ -254,12 +270,12 @@
                          emissivity_pond13, emissivity_pond14, emissivity_pond15, &
                          emissivity_pond16 /), &
                          
-      emisivitiy_pond_gp = (/ emissivity_pond1, emissivity_pond2, emissivity_pond3, &
+      emisivitiy_pond_gp = (/ emissivity_pond1_gp, emissivity_pond2_gp, emissivity_pond3, &
                          emissivity_pond4, emissivity_pond5, emissivity_pond6,   &
                          emissivity_pond7, emissivity_pond8, emissivity_pond9,   &
                          emissivity_pond10, emissivity_pond11, emissivity_pond12, &
-                         emissivity_pond13, emissivity_pond14, emissivity_pond15, &
-                         emissivity_pond16 /)
+                         emissivity_pond13, emissivity_pond14, emissivity_pond15_gp, &
+                         emissivity_pond16_gp /)
       !-----------------------------------------------------------------
       !-----------------------------------------------------------------
       ! numbers used in column package

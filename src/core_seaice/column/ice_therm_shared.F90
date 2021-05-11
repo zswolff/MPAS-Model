@@ -20,7 +20,7 @@
                 surface_heat_flux, dsurface_heat_flux_dTsf, &
                 planck_exponent, planck_int, planck_power, &
                 Rad_calculate, rrtmg_longwave_flux, rrtmgp_longwave_flux, &
-                longwave_re_emitted_flux, longwave_emitted
+                longwave_re_emitted_flux, longwave_emitted, longwave_absorbed_reemit_flux
                
 
       real (kind=dbl_kind), parameter, public :: &
@@ -204,22 +204,29 @@
 
 ! Added by ZSW 3/25/19
 ! Longwave flux along 16 bands RRTMG 
-      subroutine rrtmg_longwave_flux(T,      flw1, &
-                                     flw2,   flw3, & 
-                                     flw4,   flw5, &  
-                                     flw6,   flw7, &  
-                                     flw8,   flw9, &     
-                                     flw10,  flw11,&  
-                                     flw12,  flw13,&  
-                                     flw14,  flw15,&  
-                                     flw16)
+      subroutine rrtmg_longwave_flux(T, flw_bnds)     
+                                     !flw1, &
+                                     !flw2,   flw3, & 
+                                     !flw4,   flw5, &  
+                                     !flw6,   flw7, &  
+                                     !flw8,   flw9, &     
+                                     !flw10,  flw11,&  
+                                     !flw12,  flw13,&  
+                                     !flw14,  flw15,&  
+                                     !flw16)
       use ice_constants_colpkg
+      use ice_warnings, only: add_warning
+      
+      character (len=char_len_long) :: & 
+         warning   
       ! input 
       real(kind=dbl_kind), intent(in) ::&
           T ! Surface temperature in Kelvin 
       
       ! output    
-      real(kind=dbl_kind), intent(out)::& 
+      real (kind=dbl_kind), dimension(lw_nbd), intent(out) :: & 
+          flw_bnds
+      real(kind=dbl_kind) :: &!, intent(out)::& 
           flw1,  & 
           flw2,  & 
           flw3,  & 
@@ -238,6 +245,8 @@
           flw16
       
       ! local 
+      real (kind=dbl_kind), dimension(lw_nbd+1):: &
+          rad_local
       real(kind=dbl_kind) ::&
           rad1,  & 
           rad2,  & 
@@ -256,6 +265,22 @@
           rad15, & 
           rad16, &
           rad17
+      integer (kind=int_kind) :: &  
+          k, & !counter    
+          j ! counter
+         
+      do k=1, lw_nbd+1 
+         rad_local(k) = Rad_calculate(wvn_rrtmg(k), T)
+      enddo
+      
+      do j=1, lw_nbd
+         flw_bnds(j) = Planck_int(T, wvn_rrtmg(j), wvn_rrtmg(j+1), rad_local(j), rad_local(j+1))
+      enddo
+      flw_bnds(1) = flw_bnds(1)+ pi*((stefan_boltzmann*T**4/pi)*&
+      planck_power(T,wvn_rrtmg(1)))
+      
+      flw_bnds(16) = flw_bnds(16)+(pi*((stefan_boltzmann*T**4/pi)*&
+      planck_exponent(T,wvn_rrtmg(17))))
       
       rad1 = Rad_calculate(wvn1, T)
       rad2 = Rad_calculate(wvn2, T)
@@ -294,97 +319,126 @@
       flw16 = Planck_int(T,wvn16,wvn17,rad16,rad17)+(pi*((stefan_boltzmann*T**4/pi)*&
       planck_exponent(T,wvn17)))
       
+      !write(warning, *) 'old, new, 1', flw1, flw_bnds(1)
+      !call add_warning(warning)
+      
+      !write(warning, *) 'old, new, 2', flw2, flw_bnds(2)
+      !call add_warning(warning)
+      
+      !write(warning, *) 'old, new, 16', flw16, flw_bnds(16)
+      !call add_warning(warning)
+      
       end subroutine rrtmg_longwave_flux
       
-      subroutine rrtmgp_longwave_flux(T,      flw1, &
-                                     flw2,    flw3, & 
-                                     flw4,    flw5, &  
-                                     flw6,    flw7, &  
-                                     flw8,    flw9, &     
-                                     flw10,   flw11,&  
-                                     flw12,   flw13,&  
-                                     flw14,   flw15,&  
-                                     flw16)
+      subroutine rrtmgp_longwave_flux(T, flw_bnds)   
+                                     !flw1, &
+                                     !flw2,    flw3, & 
+                                     !flw4,    flw5, &  
+                                     !flw6,    flw7, &  
+                                     !flw8,    flw9, &     
+                                     !flw10,   flw11,&  
+                                     !flw12,   flw13,&  
+                                     !flw14,   flw15,&  
+                                     !flw16)
       use ice_constants_colpkg
       ! input 
       real(kind=dbl_kind), intent(in) ::&
           T ! Surface temperature in Kelvin 
       
       ! output    
-      real(kind=dbl_kind), intent(out)::& 
-          flw1,  & 
-          flw2,  & 
-          flw3,  & 
-          flw4,  & 
-          flw5,  & 
-          flw6,  & 
-          flw7,  & 
-          flw8,  & 
-          flw9,  & 
-          flw10, & 
-          flw11, & 
-          flw12, & 
-          flw13, & 
-          flw14, & 
-          flw15, & 
-          flw16
+      real (kind=dbl_kind), dimension(lw_nbd), intent(out) :: & 
+          flw_bnds
+      integer (kind=int_kind) :: &  
+          k, & !counter    
+          j ! counter
+      !real(kind=dbl_kind), intent(out)::& 
+      !    flw1,  & 
+      !    flw2,  & 
+      !    flw3,  & 
+      !    flw4,  & 
+      !    flw5,  & 
+      !    flw6,  & 
+      !    flw7,  & 
+      !    flw8,  & 
+      !    flw9,  & 
+      !    flw10, & 
+      !    flw11, & 
+      !    flw12, & 
+      !    flw13, & 
+      !    flw14, & 
+      !    flw15, & 
+      !    flw16
       
       ! local 
-      real(kind=dbl_kind) ::&
-          rad1,  & 
-          rad2,  & 
-          rad3,  & 
-          rad4,  & 
-          rad5,  & 
-          rad6,  & 
-          rad7,  & 
-          rad8,  & 
-          rad9,  & 
-          rad10, & 
-          rad11, & 
-          rad12, & 
-          rad13, & 
-          rad14, & 
-          rad15, & 
-          rad16, &
-          rad17
+      real (kind=dbl_kind), dimension(lw_nbd+1):: &
+          rad_local      
+      !real(kind=dbl_kind) ::&
+      !    rad1,  & 
+      !    rad2,  & 
+      !    rad3,  & 
+      !    rad4,  & 
+      !    rad5,  & 
+      !    rad6,  & 
+      !    rad7,  & 
+      !    rad8,  & 
+      !    rad9,  & 
+      !    rad10, & 
+      !    rad11, & 
+      !    rad12, & 
+      !    rad13, & 
+      !    rad14, & 
+      !    rad15, & 
+      !    rad16, &
+      !    rad17
+      do k=1, lw_nbd+1 
+         rad_local(k) = Rad_calculate(wvn_rrtmgp(k), T)
+      enddo
+     
+      do j=1, lw_nbd
+         flw_bnds(j) = Planck_int(T, wvn_rrtmgp(j), wvn_rrtmgp(j+1), rad_local(j), rad_local(j+1))
+      enddo
+      flw_bnds(1) = flw_bnds(1)+ pi*((stefan_boltzmann*T**4/pi)*&
+      planck_power(T,wvn_rrtmgp(1)))
       
-      rad1 = Rad_calculate(wvn1, T)
-      rad2 = Rad_calculate(wvn2_gp, T)
-      rad3 = Rad_calculate(wvn3, T)
-      rad4 = Rad_calculate(wvn4, T)
-      rad5 = Rad_calculate(wvn5, T)
-      rad6 = Rad_calculate(wvn6, T)
-      rad7 = Rad_calculate(wvn7, T)
-      rad8 = Rad_calculate(wvn8, T)
-      rad9 = Rad_calculate(wvn9, T)
-      rad10 = Rad_calculate(wvn10, T)
-      rad11 = Rad_calculate(wvn11, T)
-      rad12 = Rad_calculate(wvn12,T)
-      rad13 = Rad_calculate(wvn13, T)
-      rad14 = Rad_calculate(wvn14, T)
-      rad15 = Rad_calculate(wvn15_gp, T)
-      rad16 = Rad_calculate(wvn16_gp, T)
-      rad17 = Rad_calculate(wvn17, T)
+      flw_bnds(16) = flw_bnds(16)+(pi*((stefan_boltzmann*T**4/pi)*&
+      planck_exponent(T,wvn_rrtmgp(17))))
+            
+      !rad1 = Rad_calculate(wvn1, T)
+      !rad2 = Rad_calculate(wvn2_gp, T)
+      !rad3 = Rad_calculate(wvn3, T)
+      !rad4 = Rad_calculate(wvn4, T)
+      !rad5 = Rad_calculate(wvn5, T)
+      !rad6 = Rad_calculate(wvn6, T)
+      !rad7 = Rad_calculate(wvn7, T)
+      !rad8 = Rad_calculate(wvn8, T)
+      !rad9 = Rad_calculate(wvn9, T)
+      !rad10 = Rad_calculate(wvn10, T)
+      !rad11 = Rad_calculate(wvn11, T)
+      !rad12 = Rad_calculate(wvn12,T)
+      !rad13 = Rad_calculate(wvn13, T)
+      !rad14 = Rad_calculate(wvn14, T)
+      !rad15 = Rad_calculate(wvn15_gp, T)
+      !rad16 = Rad_calculate(wvn16_gp, T)
+      !rad17 = Rad_calculate(wvn17, T)
       
-      flw1 = Planck_int(T,wvn1, wvn2_gp, rad1, rad2)+(pi*((stefan_boltzmann*T**4/pi)*&
-      planck_power(T,wvn1)))
-      flw2 = Planck_int(T,wvn2_gp,wvn3,rad2,rad3)
-      flw3 = Planck_int(T,wvn3,wvn4,rad3,rad4)
-      flw4 = Planck_int(T,wvn4,wvn5,rad4,rad5)
-      flw5 = Planck_int(T,wvn5,wvn6,rad5,rad6)
-      flw6 = Planck_int(T,wvn6,wvn7,rad6,rad7)
-      flw7 = Planck_int(T,wvn7,wvn8,rad7,rad8)
-      flw8 = Planck_int(T,wvn8,wvn9,rad8,rad9)
-      flw9 = Planck_int(T,wvn9,wvn10,rad9,rad10)
-      flw10 = Planck_int(T,wvn10,wvn11,rad10,rad11)
-      flw11 = Planck_int(T,wvn11,wvn12,rad11,rad12)
-      flw12 = Planck_int(T,wvn13,wvn13,rad12,rad13)
-      flw13 = Planck_int(T,wvn13,wvn14,rad13,rad14)
-      flw14 = Planck_int(T,wvn14,wvn15,rad14,rad15)
-      flw15 = Planck_int(T,wvn15,wvn16,rad15,rad16)
-      flw16 = Planck_int(T,wvn16_gp,wvn17,rad16,rad17)+(pi*((stefan_boltzmann*T**4/pi)*&
-      planck_exponent(T,wvn17)))
+      !flw1 = Planck_int(T,wvn1, wvn2_gp, rad1, rad2)+(pi*((stefan_boltzmann*T**4/pi)*&
+      !planck_power(T,wvn1)))
+      !flw2 = Planck_int(T,wvn2_gp,wvn3,rad2,rad3)
+      !flw3 = Planck_int(T,wvn3,wvn4,rad3,rad4)
+      !flw4 = Planck_int(T,wvn4,wvn5,rad4,rad5)
+      !flw5 = Planck_int(T,wvn5,wvn6,rad5,rad6)
+      !flw6 = Planck_int(T,wvn6,wvn7,rad6,rad7)
+      !flw7 = Planck_int(T,wvn7,wvn8,rad7,rad8)
+      !flw8 = Planck_int(T,wvn8,wvn9,rad8,rad9)
+      !flw9 = Planck_int(T,wvn9,wvn10,rad9,rad10)
+      !flw10 = Planck_int(T,wvn10,wvn11,rad10,rad11)
+      !flw11 = Planck_int(T,wvn11,wvn12,rad11,rad12)
+      !flw12 = Planck_int(T,wvn13,wvn13,rad12,rad13)
+      !flw13 = Planck_int(T,wvn13,wvn14,rad13,rad14)
+      !flw14 = Planck_int(T,wvn14,wvn15,rad14,rad15)
+      !flw15 = Planck_int(T,wvn15,wvn16,rad15,rad16)
+      !flw16 = Planck_int(T,wvn16_gp,wvn17,rad16,rad17)+(pi*((stefan_boltzmann*T**4/pi)*&
+      !planck_exponent(T,wvn17)))
       
       end subroutine rrtmgp_longwave_flux
       
@@ -474,7 +528,8 @@
          flwi_15_pond,   & 
          flwi_16_pond
                 
-       if (longwave== 'rrtmg') then 
+       if (longwave== 'rrtmg') then    
+          
            flwi_1_ice = (c1-emissivity_ice1)*(flw1)
            flwi_2_ice = (c1-emissivity_ice2)*(flw2)
            flwi_3_ice = (c1-emissivity_ice3)*(flw3)
@@ -524,7 +579,6 @@
            flwi_14_pond = (c1-emissivity_pond14)*(flw14)
            flwi_15_pond = (c1-emissivity_pond15)*(flw15)
            flwi_16_pond = (c1-emissivity_pond16)*(flw16)
-           
            
            flwdrem_ice = flwi_1_ice+flwi_2_ice+flwi_3_ice+flwi_4_ice+&
            flwi_5_ice+flwi_6_ice+flwi_7_ice+flwi_8_ice+flwi_9_ice+&
@@ -611,11 +665,12 @@
         
        end subroutine longwave_re_emitted_flux      
               
-       subroutine longwave_absorbed_reflected_flux(flw_bnds, &
-                                                   flw_ice_abs_bnds, &
-                                                   flw_snow_abs_bnds, &
-                                                   flw_ice_ref_bnds, &
-                                                   flw_snow_ref_bnds)
+       subroutine longwave_absorbed_reemit_flux(flw_bnds, &
+                                                flw_ice_abs_bnds, &
+                                                flw_snow_abs_bnds, &
+                                                flw_ice_rem_bnds, &
+                                                flw_snow_rem_bnds, &
+                                                flw_pond_rem_bnds)
         
         use ice_constants_colpkg
         use ice_colpkg_shared, only: longwave    
@@ -627,9 +682,9 @@
           flw_ice_abs_bnds,  & 
           flw_snow_abs_bnds, & 
           !flw_pond_abs_bnds, &
-          flw_ice_ref_bnds,  & 
-          flw_snow_ref_bnds
-          !flw_pond_ref_bnds
+          flw_ice_rem_bnds,  & 
+          flw_snow_rem_bnds, & 
+          flw_pond_rem_bnds
           
       integer (kind=int_kind) :: &  
           k !counter
@@ -640,9 +695,9 @@
             flw_snow_abs_bnds(k) = snow_emissivity_rrtmg(k)*flw_bnds(k) 
             !flw_pond_abs_bnds(k) = pond_emissivity_rrtmg(k)*flw_bnds(k)
             
-            flw_ice_ref_bnds(k) = (c1-ice_emissivity_rrtmg(k))*flw_bnds(k)
-            flw_snow_ref_bnds(k) = (c1-snow_emissivity_rrtmg(k))*flw_bnds(k) 
-            !flw_pond_ref_bnds(k) = (c1-pond_emissivity_rrtmg(k))*flw_bnds(k)
+            flw_ice_rem_bnds(k) = (c1-ice_emissivity_rrtmg(k))*flw_bnds(k)
+            flw_snow_rem_bnds(k) = (c1-snow_emissivity_rrtmg(k))*flw_bnds(k) 
+            flw_pond_rem_bnds(k) = (c1-pond_emissivity_rrtmg(k))*flw_bnds(k)
          enddo 
        else 
          do k=1,lw_nbd
@@ -650,12 +705,12 @@
             flw_snow_abs_bnds(k) = snow_emissivity_rrtmgp(k)*flw_bnds(k) 
             !flw_pond_abs_bnds(k) = pond_emissivity_rrtmgp(k)*flw_bnds(k)
             
-            flw_ice_ref_bnds(k) = (c1-ice_emissivity_rrtmgp(k))*flw_bnds(k)
-            flw_snow_ref_bnds(k) = (c1-snow_emissivity_rrtmgp(k))*flw_bnds(k) 
-            !flw_pond_ref_bnds(k) = (c1-pond_emissivity_rrtmgp(k))*flw_bnds(k)             
+            flw_ice_rem_bnds(k) = (c1-ice_emissivity_rrtmgp(k))*flw_bnds(k)
+            flw_snow_rem_bnds(k) = (c1-snow_emissivity_rrtmgp(k))*flw_bnds(k) 
+            flw_pond_rem_bnds(k) = (c1-pond_emissivity_rrtmgp(k))*flw_bnds(k)             
          enddo   
        endif
-      end subroutine longwave_absorbed_reflected_flux
+      end subroutine longwave_absorbed_reemit_flux
       
       subroutine longwave_emitted(flwoutn_bnds,&
                                   sfc_type, &
@@ -678,8 +733,8 @@
          do k=1, lw_nbd
             if (sfc_type == 'snow') then 
                 flwoutn_sfc_type_bnds(k) = -snow_emissivity_rrtmg(k)*flwoutn_bnds(k) 
-            !else if (sfc_type == 'pond') then 
-            !    flwoutn_sfc_type_bnds(k) = -pond_emissivity_rrtmg(k)*flwoutn_bnds(k)
+            else if (sfc_type == 'pond') then 
+                flwoutn_sfc_type_bnds(k) = -pond_emissivity_rrtmg(k)*flwoutn_bnds(k)
             else if (sfc_type == 'ice') then
                 flwoutn_sfc_type_bnds(k) = -ice_emissivity_rrtmg(k)*flwoutn_bnds(k)
             endif !sfc_type
@@ -688,8 +743,8 @@
          do k=1,lw_nbd
             if (sfc_type == 'snow') then 
                 flwoutn_sfc_type_bnds(k) = -snow_emissivity_rrtmgp(k)*flwoutn_bnds(k) 
-            !else if (sfc_type == 'pond') then 
-            !    flwoutn_sfc_type_bnds(k) = -pond_emissivity_rrtmgp(k)*flwoutn_bnds(k)
+            else if (sfc_type == 'pond') then 
+                flwoutn_sfc_type_bnds(k) = -pond_emissivity_rrtmgp(k)*flwoutn_bnds(k)
             else if (sfc_type == 'ice') then
                 flwoutn_sfc_type_bnds(k) = -ice_emissivity_rrtmgp(k)*flwoutn_bnds(k)
             endif !sfc_type          
@@ -709,23 +764,27 @@
                                    fsensn, &
                                    flatn,   fsurfn, &
                                    l_snow, & 
-                                   flw1,    flw2,   & 
-                                   flw3,    flw4,   & 
-                                   flw5,    flw6,   & 
-                                   flw7,    flw8,   & 
-                                   flw9,    flw10,  & 
-                                   flw11,   flw12,  & 
-                                   flw13,   flw14,  & 
-                                   flw15,   flw16,  & 
-                                   flwoutn1, flwoutn2,& 
-                                   flwoutn3, flwoutn4,& 
-                                   flwoutn5, flwoutn6,& 
-                                   flwoutn7, flwoutn8,& 
-                                   flwoutn9, flwoutn10,& 
-                                   flwoutn11, flwoutn12,& 
-                                   flwoutn13, flwoutn14,& 
-                                   flwoutn15, flwoutn16, &
-                                   flwoutn_bnds)
+                                   flw_ice_abs_bnds,&
+                                   flw_snow_abs_bnds, &
+                                   flwoutn_bnds, &
+                                   flwoutn_bnds_sfc_type)
+                                   !flw1,    flw2,   & 
+                                   !flw3,    flw4,   & 
+                                   !flw5,    flw6,   & 
+                                   !flw7,    flw8,   & 
+                                   !flw9,    flw10,  & 
+                                   !flw11,   flw12,  & 
+                                   !flw13,   flw14,  & 
+                                   !flw15,   flw16,  & 
+                                   !flwoutn1, flwoutn2,& 
+                                   !flwoutn3, flwoutn4,& 
+                                   !flwoutn5, flwoutn6,& 
+                                   !flwoutn7, flwoutn8,& 
+                                   !flwoutn9, flwoutn10,& 
+                                   !flwoutn11, flwoutn12,& 
+                                   !flwoutn13, flwoutn14,& 
+                                   !flwoutn15, flwoutn16, &
+                                   
 
       use ice_constants_colpkg
       use ice_colpkg_shared, only: longwave
@@ -738,30 +797,31 @@
       real(kind=dbl_kind), intent(in) :: &
          fswsfc      , & ! SW absorbed at ice/snow surface (W m-2)
          rhoa        , & ! air density (kg/m^3)
-         flw         , & ! incoming longwave radiation (W/m^2)
-         
+         flw         , & ! incoming longwave radiation (W/m^2)       
          potT        , & ! air potential temperature  (K)
          Qa          , & ! specific humidity (kg/kg)
          shcoef      , & ! transfer coefficient for sensible heat
          lhcoef          ! transfer coefficient for latent heat
-         
-      real(kind=dbl_kind), intent(in), optional :: &
-         flw1        , & ! incoming longwave radiation band 1 (W/m^2)
-         flw2        , & ! incoming longwave radiation band 2 (W/m^2)
-         flw3        , & ! incoming longwave radiation band 3 (W/m^2)
-         flw4        , & ! incoming longwave radiation band 4 (W/m^2)
-         flw5        , & ! incoming longwave radiation band 5 (W/m^2)
-         flw6        , & ! incoming longwave radiation band 6 (W/m^2)
-         flw7        , & ! incoming longwave radiation band 7 (W/m^2)
-         flw8        , & ! incoming longwave radiation band 8 (W/m^2)
-         flw9        , & ! incoming longwave radiation band 9 (W/m^2)
-         flw10       , & ! incoming longwave radiation band 10 (W/m^2)
-         flw11       , & ! incoming longwave radiation band 11 (W/m^2)
-         flw12       , & ! incoming longwave radiation band 12 (W/m^2)
-         flw13       , & ! incoming longwave radiation band 13 (W/m^2)
-         flw14       , & ! incoming longwave radiation band 14 (W/m^2)
-         flw15       , & ! incoming longwave radiation band 15 (W/m^2)
-         flw16        ! incoming longwave radiation band 16 (W/m^2)
+      real(kind=dbl_kind),dimension(lw_nbd), intent(in), optional:: &   
+         flw_ice_abs_bnds, &
+         flw_snow_abs_bnds
+      !real(kind=dbl_kind), intent(in), optional :: &
+      !   flw1        , & ! incoming longwave radiation band 1 (W/m^2)
+      !   flw2        , & ! incoming longwave radiation band 2 (W/m^2)
+      !   flw3        , & ! incoming longwave radiation band 3 (W/m^2)
+      !   flw4        , & ! incoming longwave radiation band 4 (W/m^2)
+      !   flw5        , & ! incoming longwave radiation band 5 (W/m^2)
+      !   flw6        , & ! incoming longwave radiation band 6 (W/m^2)
+      !   flw7        , & ! incoming longwave radiation band 7 (W/m^2)
+      !   flw8        , & ! incoming longwave radiation band 8 (W/m^2)
+      !   flw9        , & ! incoming longwave radiation band 9 (W/m^2)
+      !   flw10       , & ! incoming longwave radiation band 10 (W/m^2)
+      !   flw11       , & ! incoming longwave radiation band 11 (W/m^2)
+      !   flw12       , & ! incoming longwave radiation band 12 (W/m^2)
+      !   flw13       , & ! incoming longwave radiation band 13 (W/m^2)
+      !   flw14       , & ! incoming longwave radiation band 14 (W/m^2)
+      !   flw15       , & ! incoming longwave radiation band 15 (W/m^2)
+      !   flw16        ! incoming longwave radiation band 16 (W/m^2)
        logical (kind=log_kind), intent(in), optional :: &
          l_snow ! snow true or false
     
@@ -770,27 +830,27 @@
          fsensn      , & ! surface downward sensible heat (W m-2)
          flatn       , & ! surface downward latent heat (W m-2)
          flwoutn     , & ! upward LW at surface (W m-2)
-         fsurfn          ! net flux to top surface, excluding fcondtopn
-         
-      real(kind=dbl_kind), intent(out), optional :: &
-         flwoutn1,     & ! upward LW at surface band 1 (W m-2)
-         flwoutn2,     & ! upward LW at surface band 2 (W m-2)
-         flwoutn3,     & ! upward LW at surface band 3 (W m-2)
-         flwoutn4,     & ! upward LW at surface band 4 (W m-2)
-         flwoutn5,     & ! upward LW at surface band 5 (W m-2)
-         flwoutn6,     & ! upward LW at surface band 6 (W m-2)
-         flwoutn7,     & ! upward LW at surface band 7 (W m-2)
-         flwoutn8,     & ! upward LW at surface band 8 (W m-2)
-         flwoutn9,     & ! upward LW at surface band 9 (W m-2)
-         flwoutn10,    & ! upward LW at surface band 10 (W m-2)
-         flwoutn11,    & ! upward LW at surface band 11 (W m-2)
-         flwoutn12,    & ! upward LW at surface band 12 (W m-2)
-         flwoutn13,    & ! upward LW at surface band 13 (W m-2)
-         flwoutn14,    & ! upward LW at surface band 14 (W m-2)
-         flwoutn15,    & ! upward LW at surface band 15 (W m-2)
-         flwoutn16       ! upward LW at surface band 16 (W m-2)
+         fsurfn          ! net flux to top surface, excluding fcondtopn 
+      !real(kind=dbl_kind), intent(out), optional :: &
+         !flwoutn1,     & ! upward LW at surface band 1 (W m-2)
+         !flwoutn2,     & ! upward LW at surface band 2 (W m-2)
+         !flwoutn3,     & ! upward LW at surface band 3 (W m-2)
+         !flwoutn4,     & ! upward LW at surface band 4 (W m-2)
+         !flwoutn5,     & ! upward LW at surface band 5 (W m-2)
+         !flwoutn6,     & ! upward LW at surface band 6 (W m-2)
+         !flwoutn7,     & ! upward LW at surface band 7 (W m-2)
+         !flwoutn8,     & ! upward LW at surface band 8 (W m-2)
+         !flwoutn9,     & ! upward LW at surface band 9 (W m-2)
+         !flwoutn10,    & ! upward LW at surface band 10 (W m-2)
+         !flwoutn11,    & ! upward LW at surface band 11 (W m-2)
+         !flwoutn12,    & ! upward LW at surface band 12 (W m-2)
+         !flwoutn13,    & ! upward LW at surface band 13 (W m-2)
+         !flwoutn14,    & ! upward LW at surface band 14 (W m-2)
+         !flwoutn15,    & ! upward LW at surface band 15 (W m-2)
+         !flwoutn16       ! upward LW at surface band 16 (W m-2)
       real (kind=dbl_kind), intent(out), dimension(lw_nbd), optional :: & 
-         flwoutn_bnds
+         flwoutn_bnds, & !upward LW at surface banded no emissivity
+         flwoutn_bnds_sfc_type !!upward LW at surface banded with sfc. emissivity
       ! local variables
       real(kind=dbl_kind) :: &
          TsfK        , & ! ice/snow surface temperature (K)
@@ -800,23 +860,23 @@
          tmpvar          ! 1/TsfK
     
     
-      real(kind=dbl_kind) ::&
-         flwi_1,    & ! absorbed LW band 1
-         flwi_2,    & ! absorbed LW band 1
-         flwi_3,    & ! absorbed LW band 1
-         flwi_4,    & ! absorbed LW band 1
-         flwi_5,    & ! absorbed LW band 1
-         flwi_6,    & ! absorbed LW band 1
-         flwi_7,    & ! absorbed LW band 1
-         flwi_8,    & ! absorbed LW band 1
-         flwi_9,    & ! absorbed LW band 1
-         flwi_10,   & ! absorbed LW band 1
-         flwi_11,   & ! absorbed LW band 1
-         flwi_12,   & ! absorbed LW band 1
-         flwi_13,   & ! absorbed LW band 1
-         flwi_14,   & ! absorbed LW band 1
-         flwi_15,   & ! absorbed LW band 1
-         flwi_16      ! absorbed LW band 1
+      !real(kind=dbl_kind) ::&
+      !   flwi_1,    & ! absorbed LW band 1
+      !   flwi_2,    & ! absorbed LW band 1
+      !   flwi_3,    & ! absorbed LW band 1
+      !   flwi_4,    & ! absorbed LW band 1
+      !   flwi_5,    & ! absorbed LW band 1
+      !   flwi_6,    & ! absorbed LW band 1
+      !   flwi_7,    & ! absorbed LW band 1
+      !   flwi_8,    & ! absorbed LW band 1
+      !   flwi_9,    & ! absorbed LW band 1
+      !   flwi_10,   & ! absorbed LW band 1
+      !   flwi_11,   & ! absorbed LW band 1
+      !   flwi_12,   & ! absorbed LW band 1
+      !   flwi_13,   & ! absorbed LW band 1
+      !   flwi_14,   & ! absorbed LW band 1
+      !   flwi_15,   & ! absorbed LW band 1
+      !   flwi_16      ! absorbed LW band 1
       
       real (kind=dbl_kind) :: &
          flwoutn_old, &
@@ -839,189 +899,202 @@
           ! longwave radiative flux
       if (longwave =='rrtmg') then
           ! RRTMG Bands 
-          call rrtmg_longwave_flux(TsfK, flwoutn1,flwoutn2, &
-                                   flwoutn3, flwoutn4, flwoutn5, &
-                                   flwoutn6, flwoutn7, flwoutn8, &
-                                   flwoutn9, flwoutn10,flwoutn11, &
-                                   flwoutn12, flwoutn13, flwoutn14, &
-                                   flwoutn15, flwoutn16)
+          call rrtmg_longwave_flux(TsfK, flwoutn_bnds)
+          
+          !flwoutn1,flwoutn2, &
+           !                       flwoutn3, flwoutn4, flwoutn5, &
+           !                        flwoutn6, flwoutn7, flwoutn8, &
+           !                        flwoutn9, flwoutn10,flwoutn11, &
+           !                        flwoutn12, flwoutn13, flwoutn14, &
+           !                        flwoutn15, flwoutn16)
            
-           flwoutn_bnds = (/ flwoutn1, flwoutn2, flwoutn3, flwoutn4, &
-                             flwoutn5, flwoutn6, flwoutn7, flwoutn8, & 
-                             flwoutn9, flwoutn10, flwoutn11,flwoutn12, &
-                             flwoutn13, flwoutn14, flwoutn15, flwoutn16 /)
+           !flwoutn_bnds = (/ flwoutn1, flwoutn2, flwoutn3, flwoutn4, &
+           !                  flwoutn5, flwoutn6, flwoutn7, flwoutn8, & 
+           !                  flwoutn9, flwoutn10, flwoutn11,flwoutn12, &
+           !                  flwoutn13, flwoutn14, flwoutn15, flwoutn16 /)
            
            if (l_snow) then
-              flwi_1 = emissivity_snow1*(flw1)
-              flwi_2 = emissivity_snow2*(flw2)
-              flwi_3 = emissivity_snow3*(flw3)
-              flwi_4 = emissivity_snow4*(flw4)
-              flwi_5 = emissivity_snow5*(flw5)
-              flwi_6 = emissivity_snow6*(flw6)
-              flwi_7 = emissivity_snow7*(flw7)
-              flwi_8 = emissivity_snow8*(flw8)
-              flwi_9 = emissivity_snow9*(flw9)
-              flwi_10= emissivity_snow10*(flw10)
-              flwi_11= emissivity_snow11*(flw11)
-              flwi_12= emissivity_snow12*(flw12)
-              flwi_13= emissivity_snow13*(flw13)
-              flwi_14= emissivity_snow14*(flw14)
-              flwi_15= emissivity_snow15*(flw15)
-              flwi_16= emissivity_snow16*(flw16)
+              call longwave_emitted(flwoutn_bnds, 'snow', flwoutn_bnds_sfc_type)
+              flwdabs = SUM(flw_snow_abs_bnds)
+              !flwi_1 = emissivity_snow1*(flw1)
+              !flwi_2 = emissivity_snow2*(flw2)
+              !flwi_3 = emissivity_snow3*(flw3)
+              !flwi_4 = emissivity_snow4*(flw4)
+              !flwi_5 = emissivity_snow5*(flw5)
+              !flwi_6 = emissivity_snow6*(flw6)
+              !flwi_7 = emissivity_snow7*(flw7)
+              !flwi_8 = emissivity_snow8*(flw8)
+              !flwi_9 = emissivity_snow9*(flw9)
+              !flwi_10= emissivity_snow10*(flw10)
+              !flwi_11= emissivity_snow11*(flw11)
+              !flwi_12= emissivity_snow12*(flw12)
+              !flwi_13= emissivity_snow13*(flw13)
+              !flwi_14= emissivity_snow14*(flw14)
+              !flwi_15= emissivity_snow15*(flw15)
+              !flwi_16= emissivity_snow16*(flw16)
                
-              flwoutn1 = -emissivity_snow1*(flwoutn1)
-              flwoutn2 = -emissivity_snow2*(flwoutn2)
-              flwoutn3 = -emissivity_snow3*(flwoutn3)
-              flwoutn4 = -emissivity_snow4*(flwoutn4)
-              flwoutn5 = -emissivity_snow5*(flwoutn5)
-              flwoutn6 = -emissivity_snow6*(flwoutn6)
-              flwoutn7 = -emissivity_snow7*(flwoutn7)
-              flwoutn8 = -emissivity_snow8*(flwoutn8)
-              flwoutn9 = -emissivity_snow9*(flwoutn9)
-              flwoutn10= -emissivity_snow10*(flwoutn10)
-              flwoutn11= -emissivity_snow11*(flwoutn11)
-              flwoutn12= -emissivity_snow12*(flwoutn12)
-              flwoutn13= -emissivity_snow13*(flwoutn13)
-              flwoutn14= -emissivity_snow14*(flwoutn14)
-              flwoutn15= -emissivity_snow15*(flwoutn15)
-              flwoutn16= -emissivity_snow16*(flwoutn16)
+              !flwoutn1 = -emissivity_snow1*(flwoutn1)
+              !flwoutn2 = -emissivity_snow2*(flwoutn2)
+              !flwoutn3 = -emissivity_snow3*(flwoutn3)
+              !flwoutn4 = -emissivity_snow4*(flwoutn4)
+              !flwoutn5 = -emissivity_snow5*(flwoutn5)
+              !flwoutn6 = -emissivity_snow6*(flwoutn6)
+              !flwoutn7 = -emissivity_snow7*(flwoutn7)
+              !flwoutn8 = -emissivity_snow8*(flwoutn8)
+              !flwoutn9 = -emissivity_snow9*(flwoutn9)
+              !flwoutn10= -emissivity_snow10*(flwoutn10)
+              !flwoutn11= -emissivity_snow11*(flwoutn11)
+              !flwoutn12= -emissivity_snow12*(flwoutn12)
+              !flwoutn13= -emissivity_snow13*(flwoutn13)
+              !flwoutn14= -emissivity_snow14*(flwoutn14)
+              !flwoutn15= -emissivity_snow15*(flwoutn15)
+              !flwoutn16= -emissivity_snow16*(flwoutn16)
               
           else
-              flwi_1 = emissivity_ice1*(flw1)
-              flwi_2 = emissivity_ice2*(flw2)
-              flwi_3 = emissivity_ice3*(flw3)
-              flwi_4 = emissivity_ice4*(flw4)
-              flwi_5 = emissivity_ice5*(flw5)
-              flwi_6 = emissivity_ice6*(flw6)
-              flwi_7 = emissivity_ice7*(flw7)
-              flwi_8 = emissivity_ice8*(flw8)
-              flwi_9 = emissivity_ice9*(flw9)
-              flwi_10= emissivity_ice10*(flw10)
-              flwi_11= emissivity_ice11*(flw11)
-              flwi_12= emissivity_ice12*(flw12)
-              flwi_13= emissivity_ice13*(flw13)
-              flwi_14= emissivity_ice14*(flw14)
-              flwi_15= emissivity_ice15*(flw15)
-              flwi_16= emissivity_ice16*(flw16)
+              call longwave_emitted(flwoutn_bnds, 'ice', flwoutn_bnds_sfc_type)
+              flwdabs = SUM(flw_ice_abs_bnds)
+              !flwi_1 = emissivity_ice1*(flw1)
+              !flwi_2 = emissivity_ice2*(flw2)
+              !flwi_3 = emissivity_ice3*(flw3)
+              !flwi_4 = emissivity_ice4*(flw4)
+              !flwi_5 = emissivity_ice5*(flw5)
+              !flwi_6 = emissivity_ice6*(flw6)
+              !flwi_7 = emissivity_ice7*(flw7)
+              !flwi_8 = emissivity_ice8*(flw8)
+              !flwi_9 = emissivity_ice9*(flw9)
+              !flwi_10= emissivity_ice10*(flw10)
+              !flwi_11= emissivity_ice11*(flw11)
+              !flwi_12= emissivity_ice12*(flw12)
+              !flwi_13= emissivity_ice13*(flw13)
+              !flwi_14= emissivity_ice14*(flw14)
+              !flwi_15= emissivity_ice15*(flw15)
+              !flwi_16= emissivity_ice16*(flw16)
                               
               
-              flwoutn1 = -emissivity_ice1*(flwoutn1)
-              flwoutn2 = -emissivity_ice2*(flwoutn2)
-              flwoutn3 = -emissivity_ice3*(flwoutn3)
-              flwoutn4 = -emissivity_ice4*(flwoutn4)
-              flwoutn5 = -emissivity_ice5*(flwoutn5)
-              flwoutn6 = -emissivity_ice6*(flwoutn6)
-              flwoutn7 = -emissivity_ice7*(flwoutn7)
-              flwoutn8 = -emissivity_ice8*(flwoutn8)
-              flwoutn9 = -emissivity_ice9*(flwoutn9)
-              flwoutn10= -emissivity_ice10*(flwoutn10)
-              flwoutn11= -emissivity_ice11*(flwoutn11)
-              flwoutn12= -emissivity_ice12*(flwoutn12)
-              flwoutn13= -emissivity_ice13*(flwoutn13)
-              flwoutn14= -emissivity_ice14*(flwoutn14)
-              flwoutn15= -emissivity_ice15*(flwoutn15)
-              flwoutn16= -emissivity_ice16*(flwoutn16)
+              !flwoutn1 = -emissivity_ice1*(flwoutn1)
+              !flwoutn2 = -emissivity_ice2*(flwoutn2)
+              !flwoutn3 = -emissivity_ice3*(flwoutn3)
+              !flwoutn4 = -emissivity_ice4*(flwoutn4)
+              !flwoutn5 = -emissivity_ice5*(flwoutn5)
+              !flwoutn6 = -emissivity_ice6*(flwoutn6)
+              !flwoutn7 = -emissivity_ice7*(flwoutn7)
+              !flwoutn8 = -emissivity_ice8*(flwoutn8)
+              !flwoutn9 = -emissivity_ice9*(flwoutn9)
+              !flwoutn10= -emissivity_ice10*(flwoutn10)
+              !flwoutn11= -emissivity_ice11*(flwoutn11)
+              !flwoutn12= -emissivity_ice12*(flwoutn12)
+              !flwoutn13= -emissivity_ice13*(flwoutn13)
+              !flwoutn14= -emissivity_ice14*(flwoutn14)
+              !flwoutn15= -emissivity_ice15*(flwoutn15)
+              !flwoutn16= -emissivity_ice16*(flwoutn16)
           endif
-          flwdabs = flwi_1+flwi_2+flwi_3+flwi_4+flwi_5+flwi_6+ &
-          flwi_7+flwi_8+flwi_9+flwi_10+flwi_11+flwi_12+&
-          flwi_13+flwi_14+flwi_15+flwi_16 
+          !flwdabs = flwi_1+flwi_2+flwi_3+flwi_4+flwi_5+flwi_6+ &
+          !flwi_7+flwi_8+flwi_9+flwi_10+flwi_11+flwi_12+&
+          !flwi_13+flwi_14+flwi_15+flwi_16 
           
-          flwoutn = flwoutn1+flwoutn2+flwoutn3+flwoutn4+flwoutn5+flwoutn6+flwoutn7+ &
-          flwoutn8+flwoutn9+flwoutn10+flwoutn11+flwoutn12+flwoutn13+flwoutn14+ &
-          flwoutn15+flwoutn16    
-          
+          !flwoutn = flwoutn1+flwoutn2+flwoutn3+flwoutn4+flwoutn5+flwoutn6+flwoutn7+ &
+          !flwoutn8+flwoutn9+flwoutn10+flwoutn11+flwoutn12+flwoutn13+flwoutn14+ &
+          !flwoutn15+flwoutn16    
+         
+          flwoutn = SUM(flwoutn_bnds_sfc_type)
       else if (longwave == 'rrtmgp') then 
       
           ! RRTMGP Bands 
-          call rrtmgp_longwave_flux(TsfK, flwoutn1,flwoutn2, &
-                                   flwoutn3, flwoutn4, flwoutn5, &
-                                   flwoutn6, flwoutn7, flwoutn8, &
-                                   flwoutn9, flwoutn10,flwoutn11, &
-                                   flwoutn12, flwoutn13, flwoutn14, &
-                                   flwoutn15, flwoutn16)                         
+          call rrtmgp_longwave_flux(TsfK, flwoutn_bnds)
+          !call rrtmgp_longwave_flux(TsfK, flwoutn1,flwoutn2, &
+          !                        flwoutn3, flwoutn4, flwoutn5, &
+          !                         flwoutn6, flwoutn7, flwoutn8, &
+          !                         flwoutn9, flwoutn10,flwoutn11, &
+          !                         flwoutn12, flwoutn13, flwoutn14, &
+          !                         flwoutn15, flwoutn16)                         
 
           !flwdabs =  emissivity * flw
-          flwoutn_bnds = (/ flwoutn1, flwoutn2, flwoutn3, flwoutn4, &
-                             flwoutn5, flwoutn6, flwoutn7, flwoutn8, & 
-                             flwoutn9, flwoutn10, flwoutn11,flwoutn12, &
-                             flwoutn13, flwoutn14, flwoutn15, flwoutn16 /)
+          !flwoutn_bnds = (/ flwoutn1, flwoutn2, flwoutn3, flwoutn4, &
+          !                   flwoutn5, flwoutn6, flwoutn7, flwoutn8, & 
+          !                   flwoutn9, flwoutn10, flwoutn11,flwoutn12, &
+          !                   flwoutn13, flwoutn14, flwoutn15, flwoutn16 /)
           if (l_snow) then
-              flwi_1 = emissivity_snow1_gp*(flw1)
-              flwi_2 = emissivity_snow2_gp*(flw2)
-              flwi_3 = emissivity_snow3*(flw3)
-              flwi_4 = emissivity_snow4*(flw4)
-              flwi_5 = emissivity_snow5*(flw5)
-              flwi_6 = emissivity_snow6*(flw6)
-              flwi_7 = emissivity_snow7*(flw7)
-              flwi_8 = emissivity_snow8*(flw8)
-              flwi_9 = emissivity_snow9*(flw9)
-              flwi_10= emissivity_snow10*(flw10)
-              flwi_11= emissivity_snow11*(flw11)
-              flwi_12= emissivity_snow12*(flw12)
-              flwi_13= emissivity_snow13*(flw13)
-              flwi_14= emissivity_snow14*(flw14)
-              flwi_15= emissivity_snow15_gp*(flw15)
-              flwi_16= emissivity_snow16_gp*(flw16)
+              call longwave_emitted(flwoutn_bnds, 'snow', flwoutn_bnds_sfc_type)
+              flwdabs = SUM(flw_snow_abs_bnds)
+              !flwi_1 = emissivity_snow1_gp*(flw1)
+              !flwi_2 = emissivity_snow2_gp*(flw2)
+              !flwi_3 = emissivity_snow3*(flw3)
+              !flwi_4 = emissivity_snow4*(flw4)
+              !flwi_5 = emissivity_snow5*(flw5)
+              !flwi_6 = emissivity_snow6*(flw6)
+              !flwi_7 = emissivity_snow7*(flw7)
+              !flwi_8 = emissivity_snow8*(flw8)
+              !flwi_9 = emissivity_snow9*(flw9)
+              !flwi_10= emissivity_snow10*(flw10)
+              !flwi_11= emissivity_snow11*(flw11)
+              !flwi_12= emissivity_snow12*(flw12)
+              !flwi_13= emissivity_snow13*(flw13)
+              !flwi_14= emissivity_snow14*(flw14)
+              !flwi_15= emissivity_snow15_gp*(flw15)
+              !flwi_16= emissivity_snow16_gp*(flw16)
                
-              flwoutn1 = -emissivity_snow1_gp*(flwoutn1)
-              flwoutn2 = -emissivity_snow2_gp*(flwoutn2)
-              flwoutn3 = -emissivity_snow3*(flwoutn3)
-              flwoutn4 = -emissivity_snow4*(flwoutn4)
-              flwoutn5 = -emissivity_snow5*(flwoutn5)
-              flwoutn6 = -emissivity_snow6*(flwoutn6)
-              flwoutn7 = -emissivity_snow7*(flwoutn7)
-              flwoutn8 = -emissivity_snow8*(flwoutn8)
-              flwoutn9 = -emissivity_snow9*(flwoutn9)
-              flwoutn10= -emissivity_snow10*(flwoutn10)
-              flwoutn11= -emissivity_snow11*(flwoutn11)
-              flwoutn12= -emissivity_snow12*(flwoutn12)
-              flwoutn13= -emissivity_snow13*(flwoutn13)
-              flwoutn14= -emissivity_snow14*(flwoutn14)
-              flwoutn15= -emissivity_snow15*(flwoutn15)
-              flwoutn16= -emissivity_snow16_gp*(flwoutn16)
+              !flwoutn1 = -emissivity_snow1_gp*(flwoutn1)
+              !flwoutn2 = -emissivity_snow2_gp*(flwoutn2)
+              !flwoutn3 = -emissivity_snow3*(flwoutn3)
+              !flwoutn4 = -emissivity_snow4*(flwoutn4)
+              !flwoutn5 = -emissivity_snow5*(flwoutn5)
+              !flwoutn6 = -emissivity_snow6*(flwoutn6)
+              !flwoutn7 = -emissivity_snow7*(flwoutn7)
+              !flwoutn8 = -emissivity_snow8*(flwoutn8)
+              !flwoutn9 = -emissivity_snow9*(flwoutn9)
+              !flwoutn10= -emissivity_snow10*(flwoutn10)
+              !flwoutn11= -emissivity_snow11*(flwoutn11)
+              !flwoutn12= -emissivity_snow12*(flwoutn12)
+              !flwoutn13= -emissivity_snow13*(flwoutn13)
+              !flwoutn14= -emissivity_snow14*(flwoutn14)
+              !flwoutn15= -emissivity_snow15*(flwoutn15)
+              !flwoutn16= -emissivity_snow16_gp*(flwoutn16)
           else
-              flwi_1 = emissivity_ice1_gp*(flw1)
-              flwi_2 = emissivity_ice2_gp*(flw2)
-              flwi_3 = emissivity_ice3*(flw3)
-              flwi_4 = emissivity_ice4*(flw4)
-              flwi_5 = emissivity_ice5*(flw5)
-              flwi_6 = emissivity_ice6*(flw6)
-              flwi_7 = emissivity_ice7*(flw7)
-              flwi_8 = emissivity_ice8*(flw8)
-              flwi_9 = emissivity_ice9*(flw9)
-              flwi_10= emissivity_ice10*(flw10)
-              flwi_11= emissivity_ice11*(flw11)
-              flwi_12= emissivity_ice12*(flw12)
-              flwi_13= emissivity_ice13*(flw13)
-              flwi_14= emissivity_ice14*(flw14)
-              flwi_15= emissivity_ice15_gp*(flw15)
-              flwi_16= emissivity_ice16_gp*(flw16)
+              call longwave_emitted(flwoutn_bnds, 'ice', flwoutn_bnds_sfc_type)
+              flwdabs = SUM(flw_ice_abs_bnds)
+              !flwi_1 = emissivity_ice1_gp*(flw1)
+              !flwi_2 = emissivity_ice2_gp*(flw2)
+              !flwi_3 = emissivity_ice3*(flw3)
+              !flwi_4 = emissivity_ice4*(flw4)
+              !flwi_5 = emissivity_ice5*(flw5)
+              !flwi_6 = emissivity_ice6*(flw6)
+              !flwi_7 = emissivity_ice7*(flw7)
+              !flwi_8 = emissivity_ice8*(flw8)
+              !flwi_9 = emissivity_ice9*(flw9)
+              !flwi_10= emissivity_ice10*(flw10)
+              !flwi_11= emissivity_ice11*(flw11)
+              !flwi_12= emissivity_ice12*(flw12)
+              !flwi_13= emissivity_ice13*(flw13)
+              !flwi_14= emissivity_ice14*(flw14)
+              !flwi_15= emissivity_ice15_gp*(flw15)
+              !flwi_16= emissivity_ice16_gp*(flw16)
                               
               
-              flwoutn1 = -emissivity_ice1_gp*(flwoutn1)
-              flwoutn2 = -emissivity_ice2_gp*(flwoutn2)
-              flwoutn3 = -emissivity_ice3*(flwoutn3)
-              flwoutn4 = -emissivity_ice4*(flwoutn4)
-              flwoutn5 = -emissivity_ice5*(flwoutn5)
-              flwoutn6 = -emissivity_ice6*(flwoutn6)
-              flwoutn7 = -emissivity_ice7*(flwoutn7)
-              flwoutn8 = -emissivity_ice8*(flwoutn8)
-              flwoutn9 = -emissivity_ice9*(flwoutn9)
-              flwoutn10= -emissivity_ice10*(flwoutn10)
-              flwoutn11= -emissivity_ice11*(flwoutn11)
-              flwoutn12= -emissivity_ice12*(flwoutn12)
-              flwoutn13= -emissivity_ice13*(flwoutn13)
-              flwoutn14= -emissivity_ice14*(flwoutn14)
-              flwoutn15= -emissivity_ice15_gp*(flwoutn15)
-              flwoutn16= -emissivity_ice16_gp*(flwoutn16)
+              !flwoutn1 = -emissivity_ice1_gp*(flwoutn1)
+              !flwoutn2 = -emissivity_ice2_gp*(flwoutn2)
+              !flwoutn3 = -emissivity_ice3*(flwoutn3)
+              !flwoutn4 = -emissivity_ice4*(flwoutn4)
+              !flwoutn5 = -emissivity_ice5*(flwoutn5)
+              !flwoutn6 = -emissivity_ice6*(flwoutn6)
+              !flwoutn7 = -emissivity_ice7*(flwoutn7)
+              !flwoutn8 = -emissivity_ice8*(flwoutn8)
+              !flwoutn9 = -emissivity_ice9*(flwoutn9)
+              !flwoutn10= -emissivity_ice10*(flwoutn10)
+              !flwoutn11= -emissivity_ice11*(flwoutn11)
+              !flwoutn12= -emissivity_ice12*(flwoutn12)
+              !flwoutn13= -emissivity_ice13*(flwoutn13)
+              !flwoutn14= -emissivity_ice14*(flwoutn14)
+              !flwoutn15= -emissivity_ice15_gp*(flwoutn15)
+              !flwoutn16= -emissivity_ice16_gp*(flwoutn16)
           endif
-          flwdabs = flwi_1+flwi_2+flwi_3+flwi_4+flwi_5+flwi_6+ &
-          flwi_7+flwi_8+flwi_9+flwi_10+flwi_11+flwi_12+&
-          flwi_13+flwi_14+flwi_15+flwi_16  
+          flwoutn = SUM(flwoutn_bnds_sfc_type)
+          !flwdabs = flwi_1+flwi_2+flwi_3+flwi_4+flwi_5+flwi_6+ &
+          !flwi_7+flwi_8+flwi_9+flwi_10+flwi_11+flwi_12+&
+          !flwi_13+flwi_14+flwi_15+flwi_16  
           
-          flwoutn = flwoutn1+flwoutn2+flwoutn3+flwoutn4+flwoutn5+flwoutn6+flwoutn7+ &
-          flwoutn8+flwoutn9+flwoutn10+flwoutn11+flwoutn12+flwoutn13+flwoutn14+ &
-          flwoutn15+flwoutn16  
+          !flwoutn = flwoutn1+flwoutn2+flwoutn3+flwoutn4+flwoutn5+flwoutn6+flwoutn7+ &
+          !flwoutn8+flwoutn9+flwoutn10+flwoutn11+flwoutn12+flwoutn13+flwoutn14+ &
+          !flwoutn15+flwoutn16  
       else 
         flwdabs =  emissivity*flw
         flwoutn = -emissivity*stefan_boltzmann*Tsfk**4
@@ -1062,15 +1135,16 @@
                                          dfsurfn_dTsf, dflwoutn_dTsf, &
                                          dfsensn_dTsf, dflatn_dTsf, & 
                                          l_snow, &
-                                         flwoutn1, &
-                                         flwoutn2, flwoutn3, &
-                                         flwoutn4, flwoutn5, &
-                                         flwoutn6, flwoutn7, &
-                                         flwoutn8, flwoutn9, &
-                                         flwoutn10, flwoutn11, &
-                                         flwoutn12, flwoutn13, &
-                                         flwoutn14, flwoutn15, &
-                                         flwoutn16)
+                                         flwoutn_bnds)
+                                         !flwoutn1, &
+                                         !flwoutn2, flwoutn3, &
+                                         !flwoutn4, flwoutn5, &
+                                         !flwoutn6, flwoutn7, &
+                                         !flwoutn8, flwoutn9, &
+                                         !flwoutn10, flwoutn11, &
+                                         !flwoutn12, flwoutn13, &
+                                         !flwoutn14, flwoutn15, &
+                                         !flwoutn16)
       use ice_constants_colpkg
       use ice_colpkg_shared, only: longwave
       use ice_warnings, only: add_warning
@@ -1083,28 +1157,30 @@
          fswsfc        , & ! SW absorbed at ice/snow surface (W m-2)
          rhoa          , & ! air density (kg/m^3)
          flw           , & ! incoming longwave radiation (W/m^2)
-         flwoutn     , & ! upward LW at surface (W m-2)
+         flwoutn       , & ! upward LW at surface (W m-2)
          potT          , & ! air potential temperature  (K)
          Qa            , & ! specific humidity (kg/kg)
          shcoef        , & ! transfer coefficient for sensible heat
          lhcoef            ! transfer coefficient for latent heat
-      real(kind=dbl_kind), intent(in), optional :: &   
-         flwoutn1,     & ! upward LW at surface band 1 (W m-2)
-         flwoutn2,     & ! upward LW at surface band 2 (W m-2)
-         flwoutn3,     & ! upward LW at surface band 3 (W m-2)
-         flwoutn4,     & ! upward LW at surface band 4 (W m-2)
-         flwoutn5,     & ! upward LW at surface band 5 (W m-2)
-         flwoutn6,     & ! upward LW at surface band 6 (W m-2)
-         flwoutn7,     & ! upward LW at surface band 7 (W m-2)
-         flwoutn8,     & ! upward LW at surface band 8 (W m-2)
-         flwoutn9,     & ! upward LW at surface band 9 (W m-2)
-         flwoutn10,    & ! upward LW at surface band 10 (W m-2)
-         flwoutn11,    & ! upward LW at surface band 11 (W m-2)
-         flwoutn12,    & ! upward LW at surface band 12 (W m-2)
-         flwoutn13,    & ! upward LW at surface band 13 (W m-2)
-         flwoutn14,    & ! upward LW at surface band 14 (W m-2)
-         flwoutn15,    & ! upward LW at surface band 15 (W m-2)
-         flwoutn16       ! upward LW at surface band 16 (W m-2)
+       real (kind=dbl_kind), intent(in), dimension(lw_nbd), optional :: &
+          flwoutn_bnds
+      !real(kind=dbl_kind), intent(in), optional :: &   
+      !   flwoutn1,     & ! upward LW at surface band 1 (W m-2)
+      !   flwoutn2,     & ! upward LW at surface band 2 (W m-2)
+      !   flwoutn3,     & ! upward LW at surface band 3 (W m-2)
+      !   flwoutn4,     & ! upward LW at surface band 4 (W m-2)
+      !   flwoutn5,     & ! upward LW at surface band 5 (W m-2)
+      !   flwoutn6,     & ! upward LW at surface band 6 (W m-2)
+      !   flwoutn7,     & ! upward LW at surface band 7 (W m-2)
+      !   flwoutn8,     & ! upward LW at surface band 8 (W m-2)
+      !   flwoutn9,     & ! upward LW at surface band 9 (W m-2)
+      !   flwoutn10,    & ! upward LW at surface band 10 (W m-2)
+      !   flwoutn11,    & ! upward LW at surface band 11 (W m-2)
+      !   flwoutn12,    & ! upward LW at surface band 12 (W m-2)
+      !   flwoutn13,    & ! upward LW at surface band 13 (W m-2)
+      !   flwoutn14,    & ! upward LW at surface band 14 (W m-2)
+      !   flwoutn15,    & ! upward LW at surface band 15 (W m-2)
+      !   flwoutn16       ! upward LW at surface band 16 (W m-2)
       ! output
       real(kind=dbl_kind), intent(out) :: &
          dfsurfn_dTsf      ! derivative of net flux to top surface, excluding fcondtopn
@@ -1120,25 +1196,29 @@
          dQsfc_dTsf    , & ! saturated surface specific humidity (kg/kg)
          qsat          , & ! the saturation humidity of air (kg/m^3)
          tmpvar        , & ! 1/TsfK
-         flw_weight1   , &
-         flw_weight2   , &
-         flw_weight3   , &
-         flw_weight4   , &
-         flw_weight5   , &
-         flw_weight6   , &
-         flw_weight7   , &
-         flw_weight8   , &
-         flw_weight9   , &
-         flw_weight10   , &
-         flw_weight11   , &
-         flw_weight12   , &
-         flw_weight13   , &
-         flw_weight14   , &
-         flw_weight15   , &
-         flw_weight16   , &
+         !flw_weight1   , &
+         !flw_weight2   , &
+         !flw_weight3   , &
+         !flw_weight4   , &
+         !flw_weight5   , &
+         !flw_weight6   , &
+         !flw_weight7   , &
+         !flw_weight8   , &
+         !flw_weight9   , &
+         !flw_weight10   , &
+         !flw_weight11   , &
+         !flw_weight12   , &
+         !flw_weight13   , &
+         !flw_weight14   , &
+         !flw_weight15   , &
+         !flw_weight16   , &
          emiss_weight   , &
          dflwoutn_dTsf_old
      
+     real(kind=dbl_kind), dimension(lw_nbd) :: & 
+         flw_weight_bnds     
+     real(kind=int_kind) :: &
+         k !counter
      logical (kind=log_kind), intent(in), optional :: &
          l_snow ! snow true or false
      
@@ -1160,93 +1240,106 @@
       
       if (longwave == 'rrtmg') then 
           if (l_snow) then
-              flw_weight1 = -emissivity_snow1*(flwoutn1/flwoutn)
-              flw_weight2 = -emissivity_snow2*(flwoutn2/flwoutn)
-              flw_weight3 = -emissivity_snow3*(flwoutn3/flwoutn)
-              flw_weight4 = -emissivity_snow4*(flwoutn4/flwoutn)
-              flw_weight5 = -emissivity_snow5*(flwoutn5/flwoutn)
-              flw_weight6 = -emissivity_snow6*(flwoutn6/flwoutn)
-              flw_weight7 = -emissivity_snow7*(flwoutn7/flwoutn)
-              flw_weight8 = -emissivity_snow8*(flwoutn8/flwoutn)
-              flw_weight9 = -emissivity_snow9*(flwoutn9/flwoutn)
-              flw_weight10 =-emissivity_snow10*(flwoutn10/flwoutn)
-              flw_weight11 =-emissivity_snow11*(flwoutn11/flwoutn)
-              flw_weight12 =-emissivity_snow12*(flwoutn12/flwoutn)
-              flw_weight13 =-emissivity_snow13*(flwoutn13/flwoutn)
-              flw_weight14 =-emissivity_snow14*(flwoutn14/flwoutn)
-              flw_weight15 =-emissivity_snow15*(flwoutn15/flwoutn)
-              flw_weight16 = -emissivity_snow16*(flwoutn16/flwoutn)
+              do k=1, lw_nbd
+                 flw_weight_bnds(k) = -snow_emissivity_rrtmgp(k)*(flwoutn_bnds(k)/flwoutn)
+              enddo   
+              !flw_weight1 = -emissivity_snow1*(flwoutn1/flwoutn)
+              !flw_weight2 = -emissivity_snow2*(flwoutn2/flwoutn)
+              !flw_weight3 = -emissivity_snow3*(flwoutn3/flwoutn)
+              !flw_weight4 = -emissivity_snow4*(flwoutn4/flwoutn)
+              !flw_weight5 = -emissivity_snow5*(flwoutn5/flwoutn)
+              !flw_weight6 = -emissivity_snow6*(flwoutn6/flwoutn)
+              !flw_weight7 = -emissivity_snow7*(flwoutn7/flwoutn)
+              !flw_weight8 = -emissivity_snow8*(flwoutn8/flwoutn)
+              !flw_weight9 = -emissivity_snow9*(flwoutn9/flwoutn)
+              !flw_weight10 =-emissivity_snow10*(flwoutn10/flwoutn)
+              !flw_weight11 =-emissivity_snow11*(flwoutn11/flwoutn)
+              !flw_weight12 =-emissivity_snow12*(flwoutn12/flwoutn)
+              !flw_weight13 =-emissivity_snow13*(flwoutn13/flwoutn)
+              !flw_weight14 =-emissivity_snow14*(flwoutn14/flwoutn)
+              !flw_weight15 =-emissivity_snow15*(flwoutn15/flwoutn)
+              !flw_weight16 = -emissivity_snow16*(flwoutn16/flwoutn)
           else
-              flw_weight1 = -emissivity_ice1*(flwoutn1/flwoutn)
-              flw_weight2 = -emissivity_ice2*(flwoutn2/flwoutn)
-              flw_weight3 = -emissivity_ice3*(flwoutn3/flwoutn)
-              flw_weight4 = -emissivity_ice4*(flwoutn4/flwoutn)
-              flw_weight5 = -emissivity_ice5*(flwoutn5/flwoutn)
-              flw_weight6 = -emissivity_ice6*(flwoutn6/flwoutn)
-              flw_weight7 = -emissivity_ice7*(flwoutn7/flwoutn)
-              flw_weight8 = -emissivity_ice8*(flwoutn8/flwoutn)
-              flw_weight9 = -emissivity_ice9*(flwoutn9/flwoutn)
-              flw_weight10 =-emissivity_ice10*(flwoutn10/flwoutn)
-              flw_weight11 =-emissivity_ice11*(flwoutn11/flwoutn)
-              flw_weight12 =-emissivity_ice12*(flwoutn12/flwoutn)
-              flw_weight13 =-emissivity_ice13*(flwoutn13/flwoutn)
-              flw_weight14 =-emissivity_ice14*(flwoutn14/flwoutn)
-              flw_weight15 =-emissivity_ice15*(flwoutn15/flwoutn)
-              flw_weight16 = -emissivity_ice16*(flwoutn16/flwoutn)
+               do k=1, lw_nbd
+                 flw_weight_bnds(k) = -ice_emissivity_rrtmgp(k)*(flwoutn_bnds(k)/flwoutn)
+              enddo  
+              !flw_weight1 = -emissivity_ice1*(flwoutn1/flwoutn)
+              !flw_weight2 = -emissivity_ice2*(flwoutn2/flwoutn)
+              !flw_weight3 = -emissivity_ice3*(flwoutn3/flwoutn)
+              !flw_weight4 = -emissivity_ice4*(flwoutn4/flwoutn)
+              !flw_weight5 = -emissivity_ice5*(flwoutn5/flwoutn)
+              !flw_weight6 = -emissivity_ice6*(flwoutn6/flwoutn)
+              !flw_weight7 = -emissivity_ice7*(flwoutn7/flwoutn)
+              !flw_weight8 = -emissivity_ice8*(flwoutn8/flwoutn)
+              !flw_weight9 = -emissivity_ice9*(flwoutn9/flwoutn)
+              !flw_weight10 =-emissivity_ice10*(flwoutn10/flwoutn)
+              !flw_weight11 =-emissivity_ice11*(flwoutn11/flwoutn)
+              !flw_weight12 =-emissivity_ice12*(flwoutn12/flwoutn)
+              !flw_weight13 =-emissivity_ice13*(flwoutn13/flwoutn)
+              !flw_weight14 =-emissivity_ice14*(flwoutn14/flwoutn)
+              !flw_weight15 =-emissivity_ice15*(flwoutn15/flwoutn)
+              !flw_weight16 = -emissivity_ice16*(flwoutn16/flwoutn)
           endif   
-          emiss_weight = flw_weight1+flw_weight2+flw_weight3+flw_weight4+flw_weight5+&
-          flw_weight6+flw_weight7+flw_weight8+flw_weight9+flw_weight10+flw_weight11+&
-          flw_weight12+flw_weight13+flw_weight14+flw_weight15+flw_weight16
-          
+          !emiss_weight = flw_weight1+flw_weight2+flw_weight3+flw_weight4+flw_weight5+&
+          !flw_weight6+flw_weight7+flw_weight8+flw_weight9+flw_weight10+flw_weight11+&
+          !flw_weight12+flw_weight13+flw_weight14+flw_weight15+flw_weight16
+          emiss_weight = SUM(flw_weight_bnds)
           dflwoutn_dTsf = emiss_weight*stefan_boltzmann*c4*TsfK**3 
           
           dflwoutn_dTsf_old = -emissivity * stefan_boltzmann * c4*TsfK**3
           l_stop = dflwoutn_dTsf - dflwoutn_dTsf_old > 1e-2_dbl_kind .or. dflwoutn_dTsf - dflwoutn_dTsf_old  < -1e-2_dbl_kind
           !if (l_stop) then
-          !   write(warning, *) 'Thermo Error: outgoing derivative', dflwoutn_dTsf - dflwoutn_dTsf_old 
-          !  call add_warning(warning)
+             !write(warning, *) 'Thermo Error: outgoing derivative', dflwoutn_dTsf - dflwoutn_dTsf_old 
+             !call add_warning(warning)
           
           !endif  
           
       else if (longwave=='rrtmgp') then 
               if (l_snow) then
-              flw_weight1 = -emissivity_snow1_gp*(flwoutn1/flwoutn)
-              flw_weight2 = -emissivity_snow2_gp*(flwoutn2/flwoutn)
-              flw_weight3 = -emissivity_snow3*(flwoutn3/flwoutn)
-              flw_weight4 = -emissivity_snow4*(flwoutn4/flwoutn)
-              flw_weight5 = -emissivity_snow5*(flwoutn5/flwoutn)
-              flw_weight6 = -emissivity_snow6*(flwoutn6/flwoutn)
-              flw_weight7 = -emissivity_snow7*(flwoutn7/flwoutn)
-              flw_weight8 = -emissivity_snow8*(flwoutn8/flwoutn)
-              flw_weight9 = -emissivity_snow9*(flwoutn9/flwoutn)
-              flw_weight10 =-emissivity_snow10*(flwoutn10/flwoutn)
-              flw_weight11 =-emissivity_snow11*(flwoutn11/flwoutn)
-              flw_weight12 =-emissivity_snow12*(flwoutn12/flwoutn)
-              flw_weight13 =-emissivity_snow13*(flwoutn13/flwoutn)
-              flw_weight14 =-emissivity_snow14*(flwoutn14/flwoutn)
-              flw_weight15 =-emissivity_snow15_gp*(flwoutn15/flwoutn)
-              flw_weight16 = -emissivity_snow16_gp*(flwoutn16/flwoutn)
+               do k=1, lw_nbd
+                 flw_weight_bnds(k) = -snow_emissivity_rrtmgp(k)*(flwoutn_bnds(k)/flwoutn)
+              enddo 
+              !flw_weight1 = -emissivity_snow1_gp*(flwoutn1/flwoutn)
+              !flw_weight2 = -emissivity_snow2_gp*(flwoutn2/flwoutn)
+              !flw_weight3 = -emissivity_snow3*(flwoutn3/flwoutn)
+              !flw_weight4 = -emissivity_snow4*(flwoutn4/flwoutn)
+              !flw_weight5 = -emissivity_snow5*(flwoutn5/flwoutn)
+              !flw_weight6 = -emissivity_snow6*(flwoutn6/flwoutn)
+              !flw_weight7 = -emissivity_snow7*(flwoutn7/flwoutn)
+              !flw_weight8 = -emissivity_snow8*(flwoutn8/flwoutn)
+              !flw_weight9 = -emissivity_snow9*(flwoutn9/flwoutn)
+              !flw_weight10 =-emissivity_snow10*(flwoutn10/flwoutn)
+              !flw_weight11 =-emissivity_snow11*(flwoutn11/flwoutn)
+              !flw_weight12 =-emissivity_snow12*(flwoutn12/flwoutn)
+              !flw_weight13 =-emissivity_snow13*(flwoutn13/flwoutn)
+              !flw_weight14 =-emissivity_snow14*(flwoutn14/flwoutn)
+              !flw_weight15 =-emissivity_snow15_gp*(flwoutn15/flwoutn)
+              !flw_weight16 = -emissivity_snow16_gp*(flwoutn16/flwoutn)
           else
-              flw_weight1 = -emissivity_ice1_gp*(flwoutn1/flwoutn)
-              flw_weight2 = -emissivity_ice2*(flwoutn2/flwoutn)
-              flw_weight3 = -emissivity_ice3*(flwoutn3/flwoutn)
-              flw_weight4 = -emissivity_ice4*(flwoutn4/flwoutn)
-              flw_weight5 = -emissivity_ice5*(flwoutn5/flwoutn)
-              flw_weight6 = -emissivity_ice6*(flwoutn6/flwoutn)
-              flw_weight7 = -emissivity_ice7*(flwoutn7/flwoutn)
-              flw_weight8 = -emissivity_ice8*(flwoutn8/flwoutn)
-              flw_weight9 = -emissivity_ice9*(flwoutn9/flwoutn)
-              flw_weight10 =-emissivity_ice10*(flwoutn10/flwoutn)
-              flw_weight11 =-emissivity_ice11*(flwoutn11/flwoutn)
-              flw_weight12 =-emissivity_ice12*(flwoutn12/flwoutn)
-              flw_weight13 =-emissivity_ice13*(flwoutn13/flwoutn)
-              flw_weight14 =-emissivity_ice14*(flwoutn14/flwoutn)
-              flw_weight15 =-emissivity_ice15_gp*(flwoutn15/flwoutn)
-              flw_weight16 = -emissivity_ice16_gp*(flwoutn16/flwoutn)
+               do k=1, lw_nbd
+                 flw_weight_bnds(k) = -ice_emissivity_rrtmgp(k)*(flwoutn_bnds(k)/flwoutn)
+              enddo 
+              !flw_weight1 = -emissivity_ice1_gp*(flwoutn1/flwoutn)
+              !flw_weight2 = -emissivity_ice2*(flwoutn2/flwoutn)
+              !flw_weight3 = -emissivity_ice3*(flwoutn3/flwoutn)
+              !flw_weight4 = -emissivity_ice4*(flwoutn4/flwoutn)
+              !flw_weight5 = -emissivity_ice5*(flwoutn5/flwoutn)
+              !flw_weight6 = -emissivity_ice6*(flwoutn6/flwoutn)
+              !flw_weight7 = -emissivity_ice7*(flwoutn7/flwoutn)
+              !flw_weight8 = -emissivity_ice8*(flwoutn8/flwoutn)
+              !flw_weight9 = -emissivity_ice9*(flwoutn9/flwoutn)
+              !lw_weight10 =-emissivity_ice10*(flwoutn10/flwoutn)
+              !flw_weight11 =-emissivity_ice11*(flwoutn11/flwoutn)
+              !flw_weight12 =-emissivity_ice12*(flwoutn12/flwoutn)
+              !flw_weight13 =-emissivity_ice13*(flwoutn13/flwoutn)
+              !flw_weight14 =-emissivity_ice14*(flwoutn14/flwoutn)
+              !flw_weight15 =-emissivity_ice15_gp*(flwoutn15/flwoutn)
+              !flw_weight16 = -emissivity_ice16_gp*(flwoutn16/flwoutn)
           endif   
-          emiss_weight = flw_weight1+flw_weight2+flw_weight3+flw_weight4+flw_weight5+&
-          flw_weight6+flw_weight7+flw_weight8+flw_weight9+flw_weight10+flw_weight11+&
-          flw_weight12+flw_weight13+flw_weight14+flw_weight15+flw_weight16
+          emiss_weight = SUM(flw_weight_bnds)
+          !emiss_weight = flw_weight1+flw_weight2+flw_weight3+flw_weight4+flw_weight5+&
+          !flw_weight6+flw_weight7+flw_weight8+flw_weight9+flw_weight10+flw_weight11+&
+          !flw_weight12+flw_weight13+flw_weight14+flw_weight15+flw_weight16
               
           dflwoutn_dTsf = emiss_weight*stefan_boltzmann*c4*TsfK**3 
           dflwoutn_dTsf_old = -emissivity * stefan_boltzmann * c4*TsfK**3

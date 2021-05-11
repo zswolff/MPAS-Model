@@ -62,6 +62,9 @@
          phi_c_slow_mode   , & ! liquid fraction porosity cutoff for slow mode
          phi_i_mushy           ! liquid fraction of congelation ice
 
+      ! Longwave Physics paramaters
+      real (kind=dbl_kind), public :: & 
+          Pond_flux ! Broadband pondflux calculated by 16 band scheme (W/m^2) 
 !-----------------------------------------------------------------------
 ! Parameters for radiation
 !-----------------------------------------------------------------------

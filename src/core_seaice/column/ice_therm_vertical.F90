@@ -81,19 +81,22 @@
                                   tr_rsnw,                &
                                   l_stop,      stop_label,&
                                   prescribed_ice,         & 
-                                  flw1,                   &
-                                  flw2,        flw3,      &
-                                  flw4,        flw5,      &
-                                  flw6,        flw7,      &
-                                  flw8,        flw9,      &
-                                  flw10,       flw11,     &
-                                  flw12,       flw13,     &
-                                  flw14,       flw15,     &
-                                  flw16, &
+                                  flw_ice_abs_bnds,       &
+                                  flw_snow_abs_bnds,      &
+                                  !flw1,                   &
+                                  !flw2,        flw3,      &
+                                  !flw4,        flw5,      &
+                                  !flw6,        flw7,      &
+                                  !flw8,        flw9,      &
+                                  !flw10,       flw11,     &
+                                  !flw12,       flw13,     &
+                                  !flw14,       flw15,     &
+                                  !flw16, &
                                   flwoutn_ice, flwoutn_snow, &
                                   flwoutn_greybody)
 
       use ice_therm_mushy, only: temperature_changes_salinity
+      use ice_constants_colpkg 
 
       integer (kind=int_kind), intent(in) :: &
          nilyr   , & ! number of ice layers
@@ -133,31 +136,35 @@
       ! input from atmosphere
       real (kind=dbl_kind), &
          intent(in) :: &
+         flw     , & ! incoming longwave radiation (W/m^2)
          potT    , & ! air potential temperature  (K) 
          Qa      , & ! specific humidity (kg/kg) 
          rhoa    , & ! air density (kg/m^3) 
          fsnow   , & ! snowfall rate (kg m-2 s-1)
          shcoef  , & ! transfer coefficient for sensible heat
          lhcoef      ! transfer coefficient for latent heat
-       real (kind=dbl_kind), &
-         intent(in), optional :: &
-         flw     , & ! incoming longwave radiation (W/m^2)
-         flw1    , & ! incoming longwave radiation band 1 (W/m^2)
-         flw2    , & ! incoming longwave radiation band 2 (W/m^2)
-         flw3    , & ! incoming longwave radiation band 3 (W/m^2)
-         flw4    , & ! incoming longwave radiation band 4 (W/m^2)
-         flw5    , & ! incoming longwave radiation band 5 (W/m^2)
-         flw6    , & ! incoming longwave radiation band 6 (W/m^2)
-         flw7    , & ! incoming longwave radiation band 7 (W/m^2)
-         flw8    , & ! incoming longwave radiation band 8 (W/m^2)
-         flw9    , & ! incoming longwave radiation band 9 (W/m^2)
-         flw10   , & ! incoming longwave radiation band 10 (W/m^2)
-         flw11   , & ! incoming longwave radiation band 11 (W/m^2)
-         flw12   , & ! incoming longwave radiation band 12 (W/m^2)
-         flw13   , & ! incoming longwave radiation band 13 (W/m^2)
-         flw14   , & ! incoming longwave radiation band 14 (W/m^2)
-         flw15   , & ! incoming longwave radiation band 15 (W/m^2)
-         flw16   ! incoming longwave radiation band 16 (W/m^2)
+       real(kind=dbl_kind),dimension(lw_nbd), intent(in), optional :: & 
+         flw_ice_abs_bnds,  &
+         flw_snow_abs_bnds
+       !real (kind=dbl_kind), &
+       !  intent(in), optional :: &
+       !  flw     , & ! incoming longwave radiation (W/m^2)
+       !  flw1    , & ! incoming longwave radiation band 1 (W/m^2)
+       !  flw2    , & ! incoming longwave radiation band 2 (W/m^2)
+       !  flw3    , & ! incoming longwave radiation band 3 (W/m^2)
+       !  flw4    , & ! incoming longwave radiation band 4 (W/m^2)
+       !  flw5    , & ! incoming longwave radiation band 5 (W/m^2)
+       !  flw6    , & ! incoming longwave radiation band 6 (W/m^2)
+       !  flw7    , & ! incoming longwave radiation band 7 (W/m^2)
+       !  flw8    , & ! incoming longwave radiation band 8 (W/m^2)
+       !  flw9    , & ! incoming longwave radiation band 9 (W/m^2)
+       !  flw10   , & ! incoming longwave radiation band 10 (W/m^2)
+       !  flw11   , & ! incoming longwave radiation band 11 (W/m^2)
+       !  flw12   , & ! incoming longwave radiation band 12 (W/m^2)
+       !  flw13   , & ! incoming longwave radiation band 13 (W/m^2)
+       !  flw14   , & ! incoming longwave radiation band 14 (W/m^2)
+       !  flw15   , & ! incoming longwave radiation band 15 (W/m^2)
+       !  flw16   ! incoming longwave radiation band 16 (W/m^2)
       real (kind=dbl_kind), &
          intent(inout) :: &
          fswsfc  , & ! SW absorbed at ice/snow surface (W m-2)
@@ -234,22 +241,22 @@
 ! 2D state variables (thickness, temperature)
 
       real (kind=dbl_kind) :: &
-         flwoutn1,     & ! upward LW at surface band 1 (W m-2)
-         flwoutn2,     & ! upward LW at surface band 2 (W m-2)
-         flwoutn3,     & ! upward LW at surface band 3 (W m-2)
-         flwoutn4,     & ! upward LW at surface band 4 (W m-2)
-         flwoutn5,     & ! upward LW at surface band 5 (W m-2)
-         flwoutn6,     & ! upward LW at surface band 6 (W m-2)
-         flwoutn7,     & ! upward LW at surface band 7 (W m-2)
-         flwoutn8,     & ! upward LW at surface band 8 (W m-2)
-         flwoutn9,     & ! upward LW at surface band 9 (W m-2)
-         flwoutn10,    & ! upward LW at surface band 10 (W m-2)
-         flwoutn11,    & ! upward LW at surface band 11 (W m-2)
-         flwoutn12,    & ! upward LW at surface band 12 (W m-2)
-         flwoutn13,    & ! upward LW at surface band 13 (W m-2)
-         flwoutn14,    & ! upward LW at surface band 14 (W m-2)
-         flwoutn15,    & ! upward LW at surface band 15 (W m-2)
-         flwoutn16,    & ! upward LW at surface band 16 (W m-2
+         !flwoutn1,     & ! upward LW at surface band 1 (W m-2)
+         !flwoutn2,     & ! upward LW at surface band 2 (W m-2)
+         !flwoutn3,     & ! upward LW at surface band 3 (W m-2)
+         !flwoutn4,     & ! upward LW at surface band 4 (W m-2)
+         !flwoutn5,     & ! upward LW at surface band 5 (W m-2)
+         !flwoutn6,     & ! upward LW at surface band 6 (W m-2)
+         !flwoutn7,     & ! upward LW at surface band 7 (W m-2)
+         !flwoutn8,     & ! upward LW at surface band 8 (W m-2)
+         !flwoutn9,     & ! upward LW at surface band 9 (W m-2)
+         !flwoutn10,    & ! upward LW at surface band 10 (W m-2)
+         !flwoutn11,    & ! upward LW at surface band 11 (W m-2)
+         !flwoutn12,    & ! upward LW at surface band 12 (W m-2)
+         !flwoutn13,    & ! upward LW at surface band 13 (W m-2)
+         !flwoutn14,    & ! upward LW at surface band 14 (W m-2)
+         !flwoutn15,    & ! upward LW at surface band 15 (W m-2)
+         !flwoutn16,    & ! upward LW at surface band 16 (W m-2
          hilyr       , & ! ice layer thicknessic 
          hslyr       , & ! snow layer thickness
          hin         , & ! ice thickness (m)
@@ -263,6 +270,11 @@
          
       real (kind=dbl_kind), dimension (nslyr) :: &
         zTsn           ! internal snow layer temperatures
+      
+      real (kind=dbl_kind), dimension (lw_nbd) :: &
+        flwoutn_bnds, &
+        flwount_bnds_sfc_type
+          
 ! other 2D flux and energy variables
 
       real (kind=dbl_kind) :: &
@@ -358,22 +370,24 @@
                                                   smice,     smliq,     &
                                                   tr_snow,              &
                                                   l_stop,    stop_label,&
-                                                  flw1,     flw2,       & 
-                                                  flw3,     flw4,       & 
-                                                  flw5,     flw6,       & 
-                                                  flw7,     flw8,       & 
-                                                  flw9,     flw10,      & 
-                                                  flw11,    flw12,      & 
-                                                  flw13,    flw14,      & 
-                                                  flw15,    flw16,      & 
-                                                  flwoutn1, flwoutn2,   &
-                                                  flwoutn3, flwoutn4,   &
-                                                  flwoutn5, flwoutn6,   & 
-                                                  flwoutn7, flwoutn8,   &
-                                                  flwoutn9, flwoutn10,  &
-                                                  flwoutn11, flwoutn12, &
-                                                  flwoutn13, flwoutn14, &
-                                                  flwoutn15, flwoutn16, &
+                                                  flw_ice_abs_bnds,     &
+                                                  flw_snow_abs_bnds,    & 
+                                                  !flw1,     flw2,       & 
+                                                  !flw3,     flw4,       & 
+                                                  !flw5,     flw6,       & 
+                                                  !flw7,     flw8,       & 
+                                                  !flw9,     flw10,      & 
+                                                  !flw11,    flw12,      & 
+                                                  !flw13,    flw14,      & 
+                                                  !flw15,    flw16,      & 
+                                                  !flwoutn1, flwoutn2,   &
+                                                  !flwoutn3, flwoutn4,   &
+                                                  !flwoutn5, flwoutn6,   & 
+                                                  !flwoutn7, flwoutn8,   &
+                                                  !flwoutn9, flwoutn10,  &
+                                                  !flwoutn11, flwoutn12, &
+                                                  !flwoutn13, flwoutn14, &
+                                                  !flwoutn15, flwoutn16, &
                                                   flwoutn_ice, flwoutn_snow, &
                                                   flwoutn_greybody)
                else 
@@ -422,23 +436,25 @@
                                          flwoutn,   fsurfn,    &
                                          fcondtopn, fcondbot,  &
                                          einit,     l_stop,    &
-                                         stop_label, & 
-                                         flw1,      flw2,      & 
-                                         flw3,      flw4,      & 
-                                         flw5,      flw6,      & 
-                                         flw7,      flw8,      & 
-                                         flw9,      flw10,     & 
-                                         flw11,     flw12,     & 
-                                         flw13,     flw14,     & 
-                                         flw15,     flw16,     & 
-                                         flwoutn1,  flwoutn2,  &
-                                         flwoutn3,  flwoutn4,  &
-                                         flwoutn5,  flwoutn6,  &
-                                         flwoutn7,  flwoutn8,  &
-                                         flwoutn9,  flwoutn10, &
-                                         flwoutn11, flwoutn12, &
-                                         flwoutn13, flwoutn14, &
-                                         flwoutn15, flwoutn16)
+                                         stop_label,           & 
+                                         flw_ice_abs_bnds,     &  
+                                         flw_snow_abs_bnds)
+                                         !flw1,      flw2,      & 
+                                         !flw3,      flw4,      & 
+                                         !flw5,      flw6,      & 
+                                         !flw7,      flw8,      & 
+                                         !flw9,      flw10,     & 
+                                         !flw11,     flw12,     & 
+                                         !flw13,     flw14,     & 
+                                         !flw15,     flw16,     & 
+                                         !flwoutn1,  flwoutn2,  &
+                                         !flwoutn3,  flwoutn4,  &
+                                         !flwoutn5,  flwoutn6,  &
+                                         !flwoutn7,  flwoutn8,  &
+                                         !flwoutn9,  flwoutn10, &
+                                         !flwoutn11, flwoutn12, &
+                                         !flwoutn13, flwoutn14, &
+                                         !flwoutn15, flwoutn16)
             
             else 
                 call temperature_changes(dt,                   &  
@@ -480,22 +496,24 @@
                                            flwoutn,   fsurfn,   &
                                            fcondtopn, fcondbot, &
                                            l_stop,    stop_label, &
-                                           flw1,      flw2,     & 
-                                           flw3,      flw4,     & 
-                                           flw5,      flw6,     & 
-                                           flw7,      flw8,     & 
-                                           flw9,      flw10,    & 
-                                           flw11,     flw12,    & 
-                                           flw13,     flw14,    & 
-                                           flw15,     flw16,    & 
-                                           flwoutn1,  flwoutn2, &
-                                           flwoutn3,  flwoutn4, &
-                                           flwoutn5,  flwoutn6, &
-                                           flwoutn7,  flwoutn8, &
-                                           flwoutn9,  flwoutn10, &
-                                           flwoutn11, flwoutn12, &
-                                           flwoutn13, flwoutn14, &
-                                           flwoutn15, flwoutn16)
+                                           flw_ice_abs_bnds,      &    
+                                           flw_snow_abs_bnds)
+                                           !flw1,      flw2,     & 
+                                           !flw3,      flw4,     & 
+                                           !flw5,      flw6,     & 
+                                           !flw7,      flw8,     & 
+                                           !flw9,      flw10,    & 
+                                           !flw11,     flw12,    & 
+                                           !flw13,     flw14,    & 
+                                           !flw15,     flw16,    & 
+                                           !flwoutn1,  flwoutn2, &
+                                           !flwoutn3,  flwoutn4, &
+                                           !flwoutn5,  flwoutn6, &
+                                           !flwoutn7,  flwoutn8, &
+                                           !flwoutn9,  flwoutn10, &
+                                           !flwoutn11, flwoutn12, &
+                                           !flwoutn13, flwoutn14, &
+                                           !flwoutn15, flwoutn16)
             else 
                 call zerolayer_temperature(dt,                  & 
                                            nilyr,     nslyr,    &
