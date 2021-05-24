@@ -196,7 +196,7 @@
         emissivity_pond16 = 0.952_dbl_kind ,&
         emissivity_pond16_gp = 0.950_dbl_kind ,&        
        
-        Pond_flux = -294.552325433_dbl_kind,  &
+        !Pond_flux = -294.552325433_dbl_kind,  &
         wvn1 = 10.0_dbl_kind ,&
         wvn2 =  350.0_dbl_kind,&
         wvn3 = 500.0_dbl_kind ,&
@@ -263,14 +263,14 @@
                          emissivity_snow10, emissivity_snow11, emissivity_snow12, &
                          emissivity_snow13, emissivity_snow14, emissivity_snow15_gp, &
                          emissivity_snow16_gp /), &
-      emisivitiy_pond = (/ emissivity_pond1, emissivity_pond2, emissivity_pond3, &
+     pond_emissivity_rrtmg = (/ emissivity_pond1, emissivity_pond2, emissivity_pond3, &
                          emissivity_pond4, emissivity_pond5, emissivity_pond6,   &
                          emissivity_pond7, emissivity_pond8, emissivity_pond9,   &
                          emissivity_pond10, emissivity_pond11, emissivity_pond12, &
                          emissivity_pond13, emissivity_pond14, emissivity_pond15, &
                          emissivity_pond16 /), &
                          
-      emisivitiy_pond_gp = (/ emissivity_pond1_gp, emissivity_pond2_gp, emissivity_pond3, &
+      pond_emissivity_rrtmgp = (/ emissivity_pond1_gp, emissivity_pond2_gp, emissivity_pond3, &
                          emissivity_pond4, emissivity_pond5, emissivity_pond6,   &
                          emissivity_pond7, emissivity_pond8, emissivity_pond9,   &
                          emissivity_pond10, emissivity_pond11, emissivity_pond12, &
